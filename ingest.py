@@ -7,29 +7,50 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from dotenv import load_dotenv
 
-load_dotenv()
-
-embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2",
-)
-
 def load_documents(data_dir):
+    """
+    Load documents from the specified directory, supporting text and PDF files.
+    """
     documents = []
-    for root, dirs, files in os.walk(data_dir):
-        for file in files:
-            file_path = os.path.join(root, file)
-            data_type = mimetypes.guess_type(file_path)[0]
-            if data_type == "text/plain":
-                loader = TextLoader(file_path)
-            elif data_type == "application/pdf":
-                loader = PyPDFLoader(file_path)
-            else:
-                print(f"Unsupported file type: {file_path}")
-                continue
-            documents.extend(loader.load())
-    return documents
 
-def split_documents(documents, separators=None, chunk_size=1000, chunk_overlap=100):
+    if data_dir.endswith(".txt") or data_dir.endswith(".pdf"):
+        data_type = mimetypes.guess_type(data_dir)[0]
+        if data_type == "text/plain":
+            loader = TextLoader(data_dir)
+        elif data_type == "application/pdf":
+            loader = PyPDFLoader(data_dir)
+        else:
+            print(f"Unsupported file type: {data_dir}")
+            return []
+        return loader.load()
+    
+    elif os.path.isdir(data_dir):
+        for root, dirs, files in os.walk(data_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                data_type = mimetypes.guess_type(file_path)[0]
+                if data_type == "text/plain":
+                    loader = TextLoader(file_path)
+                elif data_type == "application/pdf":
+                    loader = PyPDFLoader(file_path)
+                else:
+                    print(f"Unsupported file type: {file_path}")
+                    continue
+                documents.extend(loader.load())
+        return documents
+    else:
+        print(f"Invalid path: {data_dir}")
+        return []
+
+def split_documents(documents, separators=None, chunk_size=1200, chunk_overlap=150):
+
+    """
+    Split documents into smaller chunks using the RecursiveCharacterTextSplitter.
+     - separators: List of separators to use for splitting. If None, defaults to ["\n\n", "\n", " ", ""]
+     - chunk_size: The maximum size of each chunk in characters.
+     - chunk_overlap: The number of characters to overlap between chunks to maintain context
+    """
+
     if separators is None:
         separators = ["\n\n", "\n", " ", ""]
 
@@ -42,14 +63,43 @@ def split_documents(documents, separators=None, chunk_size=1000, chunk_overlap=1
     return chunks
 
 def build_vectorstore(chunks, embeddings, persist_dir):
+
+    """
+    Build a Chroma vector store from the provided document chunks and embeddings, and persist it to the specified directory.
+     - chunks: List of document chunks to be embedded and stored.
+     - embeddings: An instance of HuggingFaceEmbeddings to generate vector representations of the chunks.
+     - persist_dir: The directory where the Chroma vector store will be saved.
+    """
+
     vector_db = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
         persist_directory=persist_dir
     )
     return vector_db
+
+def add_documents_to_vectorstore(data_dir, embeddings, persist_dir):
+    """
+    Add new document chunks to an existing Chroma vector store by embedding the new chunks and persisting the updated vector store.
+     - data_dir: The directory containing the new documents to be added.
+     - embeddings: An instance of HuggingFaceEmbeddings to generate vector representations of the new chunks.
+     - persist_dir: The directory where the existing Chroma vector store is saved and where the updated vector store will be persisted.
+    """
+
+    docs = load_documents(data_dir)
+    chunks = split_documents(docs)
+    vector_db = build_vectorstore(chunks, embeddings, persist_dir)
+
+    return vector_db
+
 def main():
-    data_dir = "data/"
+    load_dotenv()
+
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+    )
+
+    data_dir = "/home/matcry/Documents/AI engineer roadmap/Yournotebook/data/AI_Engineer_Roadmap_2026.pdf"
     db_dir = "chroma_db/"
 
     print("Starting ingestion process...")
