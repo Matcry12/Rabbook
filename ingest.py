@@ -1,11 +1,13 @@
 import mimetypes
 import os
-from langchain_community.document_loaders import TextLoader
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+from pathlib import Path
+
 from langchain_chroma import Chroma
-from dotenv import load_dotenv
+from langchain_community.document_loaders import PyPDFLoader, TextLoader
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+from config import DATA_DIR, DB_DIR
 
 def load_documents(data_dir):
     """
@@ -13,6 +15,7 @@ def load_documents(data_dir):
     """
     documents = []
 
+    data_dir = str(data_dir)
     if data_dir.endswith(".txt") or data_dir.endswith(".pdf"):
         data_type = mimetypes.guess_type(data_dir)[0]
         if data_type == "text/plain":
@@ -74,7 +77,7 @@ def build_vectorstore(chunks, embeddings, persist_dir):
     vector_db = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
-        persist_directory=persist_dir
+        persist_directory=persist_dir,
     )
     return vector_db
 
@@ -88,25 +91,36 @@ def add_documents_to_vectorstore(data_dir, embeddings, persist_dir):
 
     docs = load_documents(data_dir)
     chunks = split_documents(docs)
-    vector_db = build_vectorstore(chunks, embeddings, persist_dir)
+
+    if not chunks:
+        raise ValueError("No supported documents were found to ingest.")
+
+    persist_path = Path(persist_dir)
+    if persist_path.exists() and any(persist_path.iterdir()):
+        vector_db = Chroma(
+            embedding_function=embeddings,
+            persist_directory=str(persist_path),
+        )
+        vector_db.add_documents(chunks)
+        return vector_db
+
+    vector_db = build_vectorstore(chunks, embeddings, str(persist_path))
 
     return vector_db
 
 def main():
-    load_dotenv()
-
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2",
     )
 
-    data_dir = "/home/matcry/Documents/AI engineer roadmap/Yournotebook/data/AI_Engineer_Roadmap_2026.pdf"
-    db_dir = "chroma_db/"
+    data_dir = DATA_DIR
+    db_dir = DB_DIR
 
     print("Starting ingestion process...")
 
     docs = load_documents(data_dir)
     chunks = split_documents(docs)
-    build_vectorstore(chunks, embeddings, db_dir)
+    build_vectorstore(chunks, embeddings, str(db_dir))
 
     print(f"Loaded {len(docs)} documents")
     print(f"Created {len(chunks)} chunks")

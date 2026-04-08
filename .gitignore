@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.DS_Store
+
+chroma_db/
+data/uploads/
+data/*.pdf
+data/*.txt
+
+tests/retrieved_docs.json
