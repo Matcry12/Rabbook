@@ -4,6 +4,7 @@ langchain-chroma
 langchain-community
 langchain-google-genai
 langchain-huggingface
+langchain-experimental
 langchain-text-splitters
 pypdf
 python-dotenv

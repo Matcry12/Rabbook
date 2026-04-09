@@ -19,6 +19,7 @@ You are a helpful and precise Research Assistant. Your goal is to provide answer
 """
     return prompt
 
+
 def rewrite_query(query):
     query_prompt = f"""You are an AI assistant tasked with breaking down complex queries into simpler sub-queries for a RAG system.
 Given the original query, decompose it into 2-4 simpler sub-queries that, when answered together, would provide a comprehensive response to the original query.
@@ -32,5 +33,5 @@ Sub-queries:
 2. How does climate change affect the oceans?
 3. What are the effects of climate change on agriculture?
 4. What are the impacts of climate change on human health?"""
-    
+
     return query_prompt
