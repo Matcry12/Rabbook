@@ -1,12 +1,14 @@
 from functools import lru_cache
 from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_groq import ChatGroq
 
 from core.config import (
     DB_DIR,
@@ -35,7 +37,7 @@ from rag.retrieve import (
 app = FastAPI(title="Rabbook")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-
+load_dotenv()  # Load environment variables from .env file at startup
 
 @lru_cache(maxsize=1)
 def get_embeddings() -> HuggingFaceEmbeddings:
@@ -48,9 +50,8 @@ def get_llm() -> ChatGoogleGenerativeAI:
     if not api_key:
         raise RuntimeError("GEMINI_KEY is missing. Add it to .env before starting the app.")
 
-    return ChatGoogleGenerativeAI(
+    return ChatGroq(
         model=DEFAULT_LLM_MODEL,
-        google_api_key=api_key,
         temperature=0.3,
     )
 

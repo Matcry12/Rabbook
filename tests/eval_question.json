@@ -1,0 +1,102 @@
+[
+  {
+    "question": "What careers does this roadmap say it is designed for?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention AI Engineer, ML Engineer, and Gen AI Engineer."
+  },
+  {
+    "question": "Does the roadmap include only technical skills, or technical and soft skills?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0", "e033fd88c716bf4b-chunk-2"],
+    "notes": "Add the chunk IDs that mention both technical skills and soft skills."
+  },
+  {
+    "question": "Are the learning resources in this roadmap free or paid?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention free learning resources."
+  },
+  {
+    "question": "According to the document, what kind of analysis was used to design this roadmap?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention the roadmap was based on AI job analysis."
+  },
+  {
+    "question": "Which company’s experience was used when designing this roadmap?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention AtliQ Technologies."
+  },
+  {
+    "question": "How many AI projects does the document say AtliQ worked on in the last two years?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention 25+ AI projects."
+  },
+  {
+    "question": "What percentage of AtliQ clients are SMEs according to the roadmap?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention 90% SMEs."
+  },
+  {
+    "question": "Where are most of AtliQ’s SME clients based?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention USA."
+  },
+  {
+    "question": "Does the document provide a link to AI job analysis?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention a jobs analysis link or GitHub."
+  },
+  {
+    "question": "Does the roadmap mention AI case studies, and if so from which company?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention AI case studies and AtliQ."
+  },
+  {
+    "question": "Does the document mention a YouTube video for the roadmap?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention a YouTube video."
+  },
+  {
+    "question": "What does the roadmap say learners should do before starting their AI learning journey?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0", "e033fd88c716bf4b-chunk-1"],
+    "notes": "Add the chunk IDs that mention suitability or before you start."
+  },
+  {
+    "question": "What does SME stand for in the document?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that define SME."
+  },
+  {
+    "question": "Is this roadmap only for GenAI, or does it also mention AI Engineer and ML Engineer roles?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention all supported roles."
+  },
+  {
+    "question": "Why was this roadmap created according to the introduction?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that explain the roadmap motivation."
+  },
+  {
+    "question": "What kind of skills are included in this roadmap besides technical skills?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0", "e033fd88c716bf4b-chunk-2"],
+    "notes": "Add the chunk IDs that mention soft skills or core skills."
+  },
+  {
+    "question": "Does the roadmap claim to be based on real AI project experience?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that mention real AI project experience."
+  },
+  {
+    "question": "What is the title of the PDF document?",
+    "relevant_chunk_ids": ["e033fd88c716bf4b-chunk-0"],
+    "notes": "Add the chunk IDs that contain the document title."
+  },
+  {
+    "question": "What is the monthly salary of an AI engineer according to this PDF?",
+    "relevant_chunk_ids": [],
+    "notes": "Leave empty if the document does not answer this question."
+  },
+  {
+    "question": "Does the document give enough information to know the monthly salary of an AI engineer?",
+    "relevant_chunk_ids": [],
+    "notes": "Leave empty if the correct retrieval behavior should be no relevant chunk."
+  }
+]

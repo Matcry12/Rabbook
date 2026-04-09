@@ -15,7 +15,7 @@ STATIC_DIR = BASE_DIR / "static"
 load_dotenv(BASE_DIR / ".env")
 
 SUPPORTED_EXTENSIONS = {".pdf", ".txt"}
-DEFAULT_LLM_MODEL = os.getenv("RABBOOK_LLM_MODEL", "gemma-3-27b-it")
+DEFAULT_LLM_MODEL = os.getenv("RABBOOK_LLM_MODEL", "llama-3.1-8b-instant")
 DEFAULT_HOST = os.getenv("RABBOOK_HOST", "0.0.0.0")
 DEFAULT_PORT = int(os.getenv("RABBOOK_PORT", "6001"))
 DEFAULT_RETRIEVAL_K = int(os.getenv("RABBOOK_RETRIEVAL_K", "4"))

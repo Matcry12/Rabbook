@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
@@ -72,6 +73,9 @@ def add_documents_to_vectorstore(data_dir, embeddings, persist_dir):
 
 
 def main():
+
+    load_dotenv()  # Load environment variables from .env file
+
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
     print("Starting ingestion process...")
@@ -87,4 +91,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(
+        "Run this from the project root with `python ingest_docs.py`, not `python rag/ingest.py`."
+    )

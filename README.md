@@ -14,10 +14,11 @@ A simple FastAPI RAG app for chatting with your own PDF and TXT documents.
 ```text
 rabbook/
 ├── main.py
-├── config.py
-├── ingest.py
-├── retrieve.py
-├── prompt.py
+├── ingest_docs.py
+├── evaluate_retrieval.py
+├── app/
+├── core/
+├── rag/
 ├── templates/
 ├── static/
 ├── tests/
@@ -46,8 +47,16 @@ python main.py
 
 Open `http://127.0.0.1:6001`.
 
+## Other Commands
+
+```bash
+python ingest_docs.py
+python evaluate_retrieval.py
+```
+
 ## Notes
 
 - Browsers commonly block port `6000`, so the app defaults to `6001`.
 - Documents in `data/` and generated Chroma files are ignored by Git.
 - Uploaded files go into `data/uploads/`.
+- Supported direct-run entrypoints are `main.py`, `ingest_docs.py`, and `evaluate_retrieval.py`.
