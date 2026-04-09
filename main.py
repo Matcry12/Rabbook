@@ -10,9 +10,13 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 from config import (
     DB_DIR,
+    DEFAULT_CONTEXT_WINDOW,
     DEFAULT_HOST,
     DEFAULT_LLM_MODEL,
+    DEFAULT_MAX_EXPANDED_CHUNKS,
     DEFAULT_PORT,
+    DEFAULT_RETRIEVAL_K,
+    REGISTRY_PATH,
     STATIC_DIR,
     SUPPORTED_EXTENSIONS,
     TEMPLATES_DIR,
@@ -20,7 +24,14 @@ from config import (
     get_google_api_key,
 )
 from ingest import add_documents_to_vectorstore
-from retrieve import format_context, generate_answer, load_vectorstore, retrieve_documents
+from retrieve import (
+    expand_with_context_window,
+    format_context,
+    generate_answer,
+    load_chunk_registry,
+    load_vectorstore,
+    retrieve_documents,
+)
 
 
 app = FastAPI(title="Rabbook")
@@ -54,8 +65,17 @@ def get_vectorstore():
     return vectorstore
 
 
+def get_chunk_registry():
+    chunk_registry = getattr(app.state, "chunk_registry", None)
+    if chunk_registry is None:
+        chunk_registry = load_chunk_registry(str(REGISTRY_PATH))
+        app.state.chunk_registry = chunk_registry
+    return chunk_registry
+
+
 def refresh_vectorstore():
     app.state.vectorstore = load_vectorstore(str(DB_DIR), get_embeddings())
+    app.state.chunk_registry = load_chunk_registry(str(REGISTRY_PATH))
 
 
 def render_home(request: Request, **context):
@@ -85,7 +105,13 @@ async def ask(request: Request):
         return render_home(request, error="Please enter a question.")
 
     try:
-        documents = retrieve_documents(get_vectorstore(), query, k=4)
+        documents = retrieve_documents(get_vectorstore(), query, k=DEFAULT_RETRIEVAL_K)
+        documents = expand_with_context_window(
+            documents,
+            get_chunk_registry(),
+            window_size=DEFAULT_CONTEXT_WINDOW,
+            max_expanded_chunks=DEFAULT_MAX_EXPANDED_CHUNKS,
+        )
         context = format_context(documents)
         answer = generate_answer(query, context, get_llm())
     except Exception as exc:
@@ -93,7 +119,9 @@ async def ask(request: Request):
 
     sources = [
         {
-            "source": doc.metadata.get("source", "Unknown"),
+            "source": doc.metadata.get("file_name", "Unknown"),
+            "page": doc.metadata.get("page"),
+            "chunk_id": doc.metadata.get("chunk_id", "unknown"),
             "score": f"{score:.4f}",
             "content": doc.page_content,
         }

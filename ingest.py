@@ -1,4 +1,5 @@
 import hashlib
+import json
 import mimetypes
 import os
 from pathlib import Path
@@ -8,7 +9,7 @@ from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from config import DATA_DIR, DB_DIR
+from config import DATA_DIR, DB_DIR, REGISTRY_PATH
 
 
 def build_document_id(source: str) -> str:
@@ -119,6 +120,46 @@ def enrich_chunk_metadata(chunks):
 
     return chunks
 
+
+def update_chunk_registry(chunks, registry_path=REGISTRY_PATH):
+    """
+    Persist a lightweight chunk registry for fast neighbor lookup at query time.
+    This avoids scanning the full vector store on every request.
+    """
+
+    registry_file = Path(registry_path)
+    if registry_file.exists():
+        registry = json.loads(registry_file.read_text(encoding="utf-8"))
+    else:
+        registry = {"by_document": {}, "by_chunk_id": {}}
+
+    by_document = registry.setdefault("by_document", {})
+    by_chunk_id = registry.setdefault("by_chunk_id", {})
+
+    for chunk in chunks:
+        metadata = dict(chunk.metadata)
+        document_id = metadata.get("document_id")
+        chunk_id = metadata.get("chunk_id")
+        chunk_index = metadata.get("chunk_index")
+
+        if document_id is None or chunk_id is None or chunk_index is None:
+            continue
+
+        chunk_index_str = str(int(chunk_index))
+        chunk_record = {
+            "page_content": chunk.page_content,
+            "metadata": metadata,
+        }
+
+        document_entry = by_document.setdefault(document_id, {})
+        document_entry[chunk_index_str] = chunk_record
+        by_chunk_id[chunk_id] = chunk_record
+
+    registry_file.write_text(
+        json.dumps(registry, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
 def build_vectorstore(chunks, embeddings, persist_dir):
 
     """
@@ -158,9 +199,11 @@ def add_documents_to_vectorstore(data_dir, embeddings, persist_dir):
             persist_directory=str(persist_path),
         )
         vector_db.add_documents(enriched_chunks)
+        update_chunk_registry(enriched_chunks)
         return vector_db
 
     vector_db = build_vectorstore(enriched_chunks, embeddings, str(persist_path))
+    update_chunk_registry(enriched_chunks)
 
     return vector_db
 
@@ -179,6 +222,7 @@ def main():
     chunks = split_documents(enriched_docs)
     enriched_chunks = enrich_chunk_metadata(chunks)
     build_vectorstore(enriched_chunks, embeddings, str(db_dir))
+    update_chunk_registry(enriched_chunks)
 
     print(f"Loaded {len(docs)} documents")
     print(f"Created {len(chunks)} chunks")
