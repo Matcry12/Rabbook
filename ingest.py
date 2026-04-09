@@ -1,3 +1,4 @@
+import hashlib
 import mimetypes
 import os
 from pathlib import Path
@@ -8,6 +9,16 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from config import DATA_DIR, DB_DIR
+
+
+def build_document_id(source: str) -> str:
+    """
+    Build a stable identifier for a source document.
+    The same source path will always map to the same document ID.
+    """
+
+    return hashlib.sha256(source.encode("utf-8")).hexdigest()[:16]
+
 
 def load_documents(data_dir):
     """
@@ -45,6 +56,30 @@ def load_documents(data_dir):
         print(f"Invalid path: {data_dir}")
         return []
 
+
+def enrich_document_metadata(documents):
+    """
+    Normalize file-level metadata before splitting into chunks.
+    """
+
+    enriched = []
+
+    for doc in documents:
+        source = str(doc.metadata.get("source", "")).strip()
+        path = Path(source) if source else None
+        page = doc.metadata.get("page")
+
+        doc.metadata["source"] = source or "unknown"
+        doc.metadata["file_name"] = path.name if path else "unknown"
+        doc.metadata["file_type"] = path.suffix.lower().lstrip(".") if path else "unknown"
+        doc.metadata["document_id"] = build_document_id(source or doc.metadata["file_name"])
+        doc.metadata["page"] = page if page is not None else None
+
+        enriched.append(doc)
+
+    return enriched
+
+
 def split_documents(documents, separators=None, chunk_size=1200, chunk_overlap=150):
 
     """
@@ -63,6 +98,25 @@ def split_documents(documents, separators=None, chunk_size=1200, chunk_overlap=1
         chunk_overlap=chunk_overlap
     )
     chunks = text_splitter.split_documents(documents)
+    return chunks
+
+
+def enrich_chunk_metadata(chunks):
+    """
+    Add chunk-level metadata after splitting so each chunk is traceable.
+    Chunk indexes are grouped per document, not globally.
+    """
+
+    chunk_counts: dict[str, int] = {}
+
+    for chunk in chunks:
+        document_id = chunk.metadata.get("document_id", "unknown")
+        chunk_index = chunk_counts.get(document_id, 0)
+        chunk_counts[document_id] = chunk_index + 1
+
+        chunk.metadata["chunk_index"] = chunk_index
+        chunk.metadata["chunk_id"] = f"{document_id}-chunk-{chunk_index}"
+
     return chunks
 
 def build_vectorstore(chunks, embeddings, persist_dir):
@@ -90,9 +144,11 @@ def add_documents_to_vectorstore(data_dir, embeddings, persist_dir):
     """
 
     docs = load_documents(data_dir)
-    chunks = split_documents(docs)
+    enriched_docs = enrich_document_metadata(docs)
+    chunks = split_documents(enriched_docs)
+    enriched_chunks = enrich_chunk_metadata(chunks)
 
-    if not chunks:
+    if not enriched_chunks:
         raise ValueError("No supported documents were found to ingest.")
 
     persist_path = Path(persist_dir)
@@ -101,10 +157,10 @@ def add_documents_to_vectorstore(data_dir, embeddings, persist_dir):
             embedding_function=embeddings,
             persist_directory=str(persist_path),
         )
-        vector_db.add_documents(chunks)
+        vector_db.add_documents(enriched_chunks)
         return vector_db
 
-    vector_db = build_vectorstore(chunks, embeddings, str(persist_path))
+    vector_db = build_vectorstore(enriched_chunks, embeddings, str(persist_path))
 
     return vector_db
 
@@ -119,8 +175,10 @@ def main():
     print("Starting ingestion process...")
 
     docs = load_documents(data_dir)
-    chunks = split_documents(docs)
-    build_vectorstore(chunks, embeddings, str(db_dir))
+    enriched_docs = enrich_document_metadata(docs)
+    chunks = split_documents(enriched_docs)
+    enriched_chunks = enrich_chunk_metadata(chunks)
+    build_vectorstore(enriched_chunks, embeddings, str(db_dir))
 
     print(f"Loaded {len(docs)} documents")
     print(f"Created {len(chunks)} chunks")

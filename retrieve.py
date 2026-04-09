@@ -1,6 +1,10 @@
+from dotenv import load_dotenv
 from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
 
-from prompt import build_rag_prompt
+from prompt import build_rag_prompt, rewrite_query
+from langchain_google_genai import ChatGoogleGenerativeAI
+from config import DEFAULT_LLM_MODEL, get_google_api_key
 
 def load_vectorstore(persist_dir, embeddings):
 
@@ -38,20 +42,59 @@ def retrieve_documents(vectorstore, query, k=4):
 
     return unique_docs
 
+def get_chunk_by_id(vectorstore, chunk_id):
+
+    """
+    Retrieve a specific document chunk from the vector store using its unique chunk ID.
+     - vectorstore: The Chroma vector store to search.
+     - chunk_id: The unique identifier of the document chunk to retrieve.
+     - Returns: The document chunk object if found, or None if no matching chunk is found in the vector store.
+    """
+
+    all_docs = vectorstore.get(include=["documents", "metadatas"])
+    documents = all_docs.get("documents", [])
+    metadatas = all_docs.get("metadatas", [])
+
+    for page_content, metadata in zip(documents, metadatas):
+        if metadata.get("chunk_id") == chunk_id:
+            return {"page_content": page_content, "metadata": metadata}
+
+    return None
+
 def format_context(documents):
 
     """
     Format the retrieved documents into a single context string for the RAG prompt.
      - documents: A list of document objects retrieved from the vector store.
     """
-
     parts = []
     for i, (doc, score) in enumerate(documents):
-        source = doc.metadata.get("source", "Unknown")
+        file_name = doc.metadata.get("file_name", "unknown")
+        page = doc.metadata.get("page")
+        chunk_id = doc.metadata.get("chunk_id", "unknown")
+        document_id = doc.metadata.get("document_id", "unknown")
+        page_label = page if page is not None else "n/a"
+
         parts.append(
-            f"Chunk {i}\nSource: {source}\nScore: {1 - score/4}\nContent: {doc.page_content}"
+            (
+                f"Chunk {i}\n"
+                f"File: {file_name}\n"
+                f"Document ID: {document_id}\n"
+                f"Chunk ID: {chunk_id}\n"
+                f"Page: {page_label}\n"
+                f"Score: {1 - score/4}\n"
+                f"Content: {doc.page_content}"
+            )
         )
     return "\n\n".join(parts)
+
+def query_trasnform(query, rewriter):
+    """ Using sub query rewriting to improve retrieval performance. --- IGNORE ---"""
+    rewrite_query_prompt = rewrite_query(query)
+    response = rewriter.invoke(rewrite_query_prompt).text.strip()
+    sub_queries = [q.strip() for q in response.split('\n') if q.strip() and not q.strip().startswith('Sub-queries:')]
+    
+    return sub_queries
 
 def generate_answer(query, context, llm):
 
@@ -90,3 +133,42 @@ def ask_question(query, vectorstore, llm, k=4):
     context = format_context(documents)
     answer = generate_answer(query, context, llm)
     return answer
+
+def main():
+    load_dotenv()
+
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    rewriter = ChatGoogleGenerativeAI(
+        model=DEFAULT_LLM_MODEL,
+        google_api_key= get_google_api_key(),
+        temperature=0.3,
+    )
+    chroma_dir = "chroma_db"
+    # Load the vector store
+    vectorstore = load_vectorstore(chroma_dir, embeddings=embeddings)
+
+    query = "What is RAG?"
+
+    sub_queries = query_trasnform(query, rewriter)
+    documents = []
+    for sub_query in sub_queries:
+        print(f"Sub-query: {sub_query}")
+        docs = retrieve_documents(vectorstore, sub_query)
+        documents.extend(docs)
+
+    for doc, score in documents:
+        print(f"Metadata: {doc.metadata}")
+        print(f"Score: {1 - score/4}")
+        #print(f"Content: {doc.page_content}\n")
+
+    print("\n\n---\n\n")
+    print("Get chunk by id:")
+    chunk_id = "2"  # Replace with the actual chunk ID you want to retrieve
+    chunk = get_chunk_by_id(vectorstore, chunk_id)
+    if chunk:
+        print(f"Found chunk: {chunk.page_content}")
+    else:
+        print("Chunk not found.")
+
+if __name__ == "__main__":
+    main()
