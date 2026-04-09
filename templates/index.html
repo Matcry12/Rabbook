@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rabbook</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body>
+    <main class="page">
+        <section class="hero">
+            <p class="eyebrow">FastAPI + RAG</p>
+            <h1>Rabbook</h1>
+            <p class="subtitle">Ask questions about your documents and add new files without leaving the browser.</p>
+        </section>
+
+        <section class="panel">
+            <h2>Ask a Question</h2>
+            <form action="/ask" method="post" class="stack">
+                <label for="query">Question</label>
+                <textarea id="query" name="query" rows="4" placeholder="What is this roadmap mainly about?">{{ query }}</textarea>
+                <button type="submit">Get Answer</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Add a Document</h2>
+            <form action="/documents" method="post" enctype="multipart/form-data" class="stack">
+                <label for="document">PDF or TXT file</label>
+                <input id="document" name="document" type="file" accept=".pdf,.txt">
+                <button type="submit">Upload Document</button>
+            </form>
+        </section>
+
+        {% if message %}
+        <section class="notice success">{{ message }}</section>
+        {% endif %}
+
+        {% if error %}
+        <section class="notice error">{{ error }}</section>
+        {% endif %}
+
+        {% if answer %}
+        <section class="panel answer-panel">
+            <h2>Answer</h2>
+            <div class="answer">{{ answer }}</div>
+        </section>
+        {% endif %}
+
+        {% if sources %}
+        <section class="panel">
+            <h2>Retrieved Chunks</h2>
+            <div class="sources">
+                {% for item in sources %}
+                <article class="source-card">
+                    <p class="source-meta"><strong>Source:</strong> {{ item.source }}</p>
+                    <p class="source-meta"><strong>Raw score:</strong> {{ item.score }}</p>
+                    <p>{{ item.content }}</p>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </main>
+</body>
+</html>
