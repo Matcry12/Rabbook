@@ -13,6 +13,7 @@ from langchain_groq import ChatGroq
 from core.config import (
     DB_DIR,
     DEFAULT_CONTEXT_WINDOW,
+    DEFAULT_BM25_CANDIDATE_K,
     DEFAULT_ENABLE_QUERY_TRANSFORM,
     DEFAULT_LLM_MODEL,
     DEFAULT_MAX_EXPANDED_CHUNKS,
@@ -29,9 +30,11 @@ from core.config import (
 from rag.ingest import add_documents_to_vectorstore
 from rag.registry import load_chunk_registry
 from rag.retrieve import (
+    build_hit_debug,
     expand_with_context_window,
     format_context,
     generate_answer,
+    load_bm25_index,
     load_reranker,
     load_vectorstore,
     retrieve_documents_with_query_transform,
@@ -65,6 +68,17 @@ def get_reranker():
     return load_reranker(DEFAULT_RERANK_MODEL)
 
 
+def get_bm25_index():
+    bm25_index = getattr(app.state, "bm25_index", None)
+    if bm25_index is None:
+        bm25_index = load_bm25_index(
+            chunk_registry=get_chunk_registry(),
+            vectorstore=get_vectorstore(),
+        )
+        app.state.bm25_index = bm25_index
+    return bm25_index
+
+
 def get_vectorstore():
     vectorstore = getattr(app.state, "vectorstore", None)
     if vectorstore is None:
@@ -84,6 +98,10 @@ def get_chunk_registry():
 def refresh_runtime_state():
     app.state.vectorstore = load_vectorstore(str(DB_DIR), get_embeddings())
     app.state.chunk_registry = load_chunk_registry(str(REGISTRY_PATH))
+    app.state.bm25_index = load_bm25_index(
+        chunk_registry=app.state.chunk_registry,
+        vectorstore=app.state.vectorstore,
+    )
 
 
 def render_home(request: Request, **context):
@@ -92,6 +110,8 @@ def render_home(request: Request, **context):
         "answer": None,
         "query": "",
         "sources": [],
+        "debug_mode": False,
+        "debug_data": None,
         "message": None,
         "error": None,
     }
@@ -99,25 +119,36 @@ def render_home(request: Request, **context):
     return templates.TemplateResponse("index.html", page_context)
 
 
-def answer_query(query):
-    retrieved_documents = retrieve_documents_with_query_transform(
+def answer_query(query, debug_mode=False):
+    retrieval_result = retrieve_documents_with_query_transform(
         get_vectorstore(),
         query,
         k=DEFAULT_RETRIEVAL_K,
         reranker=get_reranker(),
+        bm25_index=get_bm25_index(),
         query_transformer=get_llm(),
         enable_query_transform=DEFAULT_ENABLE_QUERY_TRANSFORM,
         candidate_k=DEFAULT_RERANK_CANDIDATE_K,
+        bm25_candidate_k=DEFAULT_BM25_CANDIDATE_K,
+        include_debug=debug_mode,
     )
+    if debug_mode:
+        retrieved_documents, debug_data = retrieval_result
+    else:
+        retrieved_documents = retrieval_result
+        debug_data = None
     expanded_documents = expand_with_context_window(
         retrieved_documents,
         get_chunk_registry(),
         window_size=DEFAULT_CONTEXT_WINDOW,
         max_expanded_chunks=DEFAULT_MAX_EXPANDED_CHUNKS,
     )
+    if debug_mode:
+        debug_data["expanded_hits"] = build_hit_debug(expanded_documents)
+        debug_data["stage_counts"]["expanded_context"] = len(expanded_documents)
     context = format_context(expanded_documents)
     answer = generate_answer(query, context, get_llm())
-    return answer, build_sources(retrieved_documents)
+    return answer, build_sources(retrieved_documents), debug_data
 
 
 def build_sources(documents):
@@ -171,16 +202,24 @@ async def home(request: Request):
 async def ask(request: Request):
     form = await request.form()
     query = str(form.get("query", "")).strip()
+    debug_mode = str(form.get("debug_mode", "")).lower() in {"on", "true", "1"}
 
     if not query:
-        return render_home(request, error="Please enter a question.")
+        return render_home(request, error="Please enter a question.", debug_mode=debug_mode)
 
     try:
-        answer, sources = answer_query(query)
+        answer, sources, debug_data = answer_query(query, debug_mode=debug_mode)
     except Exception as exc:
-        return render_home(request, query=query, error=str(exc))
+        return render_home(request, query=query, error=str(exc), debug_mode=debug_mode)
 
-    return render_home(request, answer=answer, query=query, sources=sources)
+    return render_home(
+        request,
+        answer=answer,
+        query=query,
+        sources=sources,
+        debug_mode=debug_mode,
+        debug_data=debug_data,
+    )
 
 
 @app.post("/documents", response_class=HTMLResponse)

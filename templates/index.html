@@ -19,6 +19,10 @@
             <form action="/ask" method="post" class="stack">
                 <label for="query">Question</label>
                 <textarea id="query" name="query" rows="4" placeholder="What is this roadmap mainly about?">{{ query }}</textarea>
+                <label class="checkbox-row" for="debug_mode">
+                    <input id="debug_mode" name="debug_mode" type="checkbox" {% if debug_mode %}checked{% endif %}>
+                    <span>Show retrieval debug</span>
+                </label>
                 <button type="submit">Get Answer</button>
             </form>
         </section>
@@ -65,6 +69,81 @@
                     <pre class="chunk-content">{{ item.content }}</pre>
                 </article>
                 {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if debug_data %}
+        <section class="panel">
+            <h2>Debug Retrieval Flow</h2>
+
+            <div class="debug-summary">
+                <div class="debug-pill">Queries: {{ debug_data.stage_counts.search_queries }}</div>
+                <div class="debug-pill">Dense Hits: {{ debug_data.dense_total_hits }}</div>
+                <div class="debug-pill">BM25 Hits: {{ debug_data.bm25_total_hits }}</div>
+                <div class="debug-pill">Fused: {{ debug_data.stage_counts.fused_candidates }}</div>
+                <div class="debug-pill">Top Hits: {{ debug_data.stage_counts.final_hits }}</div>
+                <div class="debug-pill">Expanded Context: {{ debug_data.stage_counts.expanded_context }}</div>
+            </div>
+
+            <div class="debug-block">
+                <h3>Search Queries</h3>
+                <ul class="debug-list">
+                    {% for query_item in debug_data.search_queries %}
+                    <li>{{ query_item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="debug-block">
+                <h3>Dense Hits</h3>
+                {% for query_item, hits in debug_data.dense_hits.items() %}
+                <h4>{{ query_item }}</h4>
+                <ul class="debug-list">
+                    {% for hit in hits %}
+                    <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
+                    {% endfor %}
+                </ul>
+                {% endfor %}
+            </div>
+
+            <div class="debug-block">
+                <h3>BM25 Hits</h3>
+                {% for query_item, hits in debug_data.bm25_hits.items() %}
+                <h4>{{ query_item }}</h4>
+                <ul class="debug-list">
+                    {% for hit in hits %}
+                    <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
+                    {% endfor %}
+                </ul>
+                {% endfor %}
+            </div>
+
+            <div class="debug-block">
+                <h3>Fused Candidates</h3>
+                <ul class="debug-list">
+                    {% for hit in debug_data.fused_hits %}
+                    <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="debug-block">
+                <h3>Final Reranked Hits</h3>
+                <ul class="debug-list">
+                    {% for hit in debug_data.reranked_hits %}
+                    <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="debug-block">
+                <h3>Expanded Context Sent To LLM</h3>
+                <ul class="debug-list">
+                    {% for hit in debug_data.expanded_hits %}
+                    <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
+                    {% endfor %}
+                </ul>
             </div>
         </section>
         {% endif %}
