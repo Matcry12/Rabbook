@@ -12,6 +12,8 @@ from core.config import (
     DEFAULT_CONTEXT_WINDOW,
     DEFAULT_ENABLE_QUERY_TRANSFORM,
     DEFAULT_MAX_EXPANDED_CHUNKS,
+    DEFAULT_MIN_GROUNDED_CHUNKS,
+    DEFAULT_MIN_GROUNDED_RERANK_SCORE,
     DEFAULT_RERANK_CANDIDATE_K,
     DEFAULT_RRF_K,
     DEFAULT_SUBQUERY_COUNT,
@@ -519,6 +521,49 @@ def build_citation_sources(documents):
     return citation_sources
 
 
+def check_grounding_evidence(
+    retrieved_documents,
+    expanded_documents,
+    min_rerank_score=DEFAULT_MIN_GROUNDED_RERANK_SCORE,
+    min_expanded_chunks=DEFAULT_MIN_GROUNDED_CHUNKS,
+):
+    if not retrieved_documents:
+        return {
+            "passed": False,
+            "reason": "no_retrieved_chunks",
+            "top_rerank_score": None,
+            "retrieved_count": 0,
+            "expanded_count": len(expanded_documents),
+        }
+
+    if len(expanded_documents) < min_expanded_chunks:
+        return {
+            "passed": False,
+            "reason": "too_few_expanded_chunks",
+            "top_rerank_score": _top_rerank_score(retrieved_documents),
+            "retrieved_count": len(retrieved_documents),
+            "expanded_count": len(expanded_documents),
+        }
+
+    top_rerank_score = _top_rerank_score(retrieved_documents)
+    if top_rerank_score is None or top_rerank_score < min_rerank_score:
+        return {
+            "passed": False,
+            "reason": "low_rerank_score",
+            "top_rerank_score": top_rerank_score,
+            "retrieved_count": len(retrieved_documents),
+            "expanded_count": len(expanded_documents),
+        }
+
+    return {
+        "passed": True,
+        "reason": "passed",
+        "top_rerank_score": top_rerank_score,
+        "retrieved_count": len(retrieved_documents),
+        "expanded_count": len(expanded_documents),
+    }
+
+
 def generate_answer(query, context, llm):
     """
     Generate an answer from the retrieved context.
@@ -603,3 +648,11 @@ def answer_has_valid_citations(answer, valid_sources):
 
     valid_source_set = set(valid_sources)
     return all(number in valid_source_set for number in citation_numbers)
+
+
+def _top_rerank_score(documents):
+    doc, score = documents[0]
+    rerank_score = doc.metadata.get("rerank_score")
+    if rerank_score is None:
+        return None
+    return float(rerank_score if rerank_score is not None else score)

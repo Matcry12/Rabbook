@@ -15,8 +15,11 @@ from core.config import (
     DEFAULT_CONTEXT_WINDOW,
     DEFAULT_BM25_CANDIDATE_K,
     DEFAULT_ENABLE_QUERY_TRANSFORM,
+    DEFAULT_GROUNDED_FALLBACK_MESSAGE,
     DEFAULT_LLM_MODEL,
     DEFAULT_MAX_EXPANDED_CHUNKS,
+    DEFAULT_MIN_GROUNDED_CHUNKS,
+    DEFAULT_MIN_GROUNDED_RERANK_SCORE,
     DEFAULT_RERANK_CANDIDATE_K,
     DEFAULT_RERANK_MODEL,
     DEFAULT_RETRIEVAL_K,
@@ -30,9 +33,12 @@ from core.config import (
 from rag.ingest import add_documents_to_vectorstore
 from rag.registry import load_chunk_registry
 from rag.retrieve import (
+    answer_has_valid_citations,
     build_hit_debug,
     build_citation_sources,
+    check_grounding_evidence,
     expand_with_context_window,
+    extract_valid_source_numbers,
     extract_citation_numbers,
     format_context,
     generate_answer,
@@ -137,6 +143,11 @@ def answer_query(query, debug_mode=False):
     )
     if debug_mode:
         retrieved_documents, debug_data = retrieval_result
+        debug_data["grounding"] = {
+            "stage": "retrieval",
+            "passed": None,
+            "reason": "not_checked",
+        }
     else:
         retrieved_documents = retrieval_result
         debug_data = None
@@ -149,8 +160,47 @@ def answer_query(query, debug_mode=False):
     if debug_mode:
         debug_data["expanded_hits"] = build_hit_debug(expanded_documents)
         debug_data["stage_counts"]["expanded_context"] = len(expanded_documents)
+    grounding = check_grounding_evidence(
+        retrieved_documents,
+        expanded_documents,
+        min_rerank_score=DEFAULT_MIN_GROUNDED_RERANK_SCORE,
+        min_expanded_chunks=DEFAULT_MIN_GROUNDED_CHUNKS,
+    )
+    if debug_mode:
+        debug_data["grounding"].update(grounding)
+        debug_data["grounding"]["stage"] = "retrieval"
+
+    if not grounding["passed"]:
+        answer = DEFAULT_GROUNDED_FALLBACK_MESSAGE
+        citations = []
+        return answer, build_sources(retrieved_documents), citations, debug_data
+
     context = format_context(expanded_documents)
     answer = generate_answer(query, context, get_llm())
+    if not _answer_is_grounded(answer, context):
+        if debug_mode:
+            debug_data["grounding"] = {
+                "stage": "answer",
+                "passed": False,
+                "reason": "citation_validation_failed",
+                "top_rerank_score": grounding["top_rerank_score"],
+                "retrieved_count": grounding["retrieved_count"],
+                "expanded_count": grounding["expanded_count"],
+            }
+        answer = DEFAULT_GROUNDED_FALLBACK_MESSAGE
+        citations = []
+        return answer, build_sources(retrieved_documents), citations, debug_data
+
+    if debug_mode:
+        debug_data["grounding"] = {
+            "stage": "answer",
+            "passed": True,
+            "reason": "answer_is_grounded",
+            "top_rerank_score": grounding["top_rerank_score"],
+            "retrieved_count": grounding["retrieved_count"],
+            "expanded_count": grounding["expanded_count"],
+        }
+
     citations = build_citations(expanded_documents, answer)
     return answer, build_sources(retrieved_documents), citations, debug_data
 
@@ -188,6 +238,11 @@ def _format_score(score):
     if score is None:
         return "n/a"
     return f"{float(score):.4f}"
+
+
+def _answer_is_grounded(answer, context):
+    valid_sources = extract_valid_source_numbers(context)
+    return answer_has_valid_citations(answer, valid_sources)
 
 
 def get_upload_target(document: UploadFile):

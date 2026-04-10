@@ -109,6 +109,20 @@
                 <div class="debug-pill">Expanded Context: {{ debug_data.stage_counts.expanded_context }}</div>
             </div>
 
+            {% if debug_data.grounding %}
+            <div class="debug-block">
+                <h3>Grounding Status</h3>
+                <ul class="debug-list">
+                    <li><strong>Result:</strong> {{ 'PASS' if debug_data.grounding.passed else 'FAIL' }}</li>
+                    <li><strong>Failed At:</strong> {{ debug_data.grounding.stage }}</li>
+                    <li><strong>Reason:</strong> {{ debug_data.grounding.reason }}</li>
+                    <li><strong>Top Rerank Score:</strong> {{ debug_data.grounding.top_rerank_score if debug_data.grounding.top_rerank_score is not none else 'n/a' }}</li>
+                    <li><strong>Retrieved Chunks:</strong> {{ debug_data.grounding.retrieved_count if debug_data.grounding.retrieved_count is not none else 'n/a' }}</li>
+                    <li><strong>Expanded Chunks:</strong> {{ debug_data.grounding.expanded_count if debug_data.grounding.expanded_count is not none else 'n/a' }}</li>
+                </ul>
+            </div>
+            {% endif %}
+
             <div class="debug-block">
                 <h3>Search Queries</h3>
                 <ul class="debug-list">
