@@ -117,6 +117,8 @@ def render_home(request: Request, **context):
         "request": request,
         "answer": None,
         "query": "",
+        "selected_file": "",
+        "available_files": get_available_files(),
         "sources": [],
         "citations": [],
         "debug_mode": False,
@@ -128,7 +130,8 @@ def render_home(request: Request, **context):
     return templates.TemplateResponse("index.html", page_context)
 
 
-def answer_query(query, debug_mode=False):
+def answer_query(query, selected_file="", debug_mode=False):
+    metadata_filter = build_metadata_filter(selected_file)
     retrieval_result = retrieve_documents_with_query_transform(
         get_vectorstore(),
         query,
@@ -139,10 +142,12 @@ def answer_query(query, debug_mode=False):
         enable_query_transform=DEFAULT_ENABLE_QUERY_TRANSFORM,
         candidate_k=DEFAULT_RERANK_CANDIDATE_K,
         bm25_candidate_k=DEFAULT_BM25_CANDIDATE_K,
+        metadata_filter=metadata_filter,
         include_debug=debug_mode,
     )
     if debug_mode:
         retrieved_documents, debug_data = retrieval_result
+        debug_data["metadata_filter"] = metadata_filter
         debug_data["grounding"] = {
             "stage": "retrieval",
             "passed": None,
@@ -245,6 +250,22 @@ def _answer_is_grounded(answer, context):
     return answer_has_valid_citations(answer, valid_sources)
 
 
+def build_metadata_filter(selected_file):
+    if not selected_file:
+        return None
+    return {"file_name": selected_file}
+
+
+def get_available_files():
+    records = get_chunk_registry().get("by_chunk_id", {})
+    file_names = {
+        record.get("metadata", {}).get("file_name", "")
+        for record in records.values()
+        if record.get("metadata", {}).get("file_name")
+    }
+    return sorted(file_names)
+
+
 def get_upload_target(document: UploadFile):
     if not document.filename:
         raise ValueError("Please choose a file to upload.")
@@ -276,20 +297,37 @@ async def home(request: Request):
 async def ask(request: Request):
     form = await request.form()
     query = str(form.get("query", "")).strip()
+    selected_file = str(form.get("selected_file", "")).strip()
     debug_mode = str(form.get("debug_mode", "")).lower() in {"on", "true", "1"}
 
     if not query:
-        return render_home(request, error="Please enter a question.", debug_mode=debug_mode)
+        return render_home(
+            request,
+            error="Please enter a question.",
+            debug_mode=debug_mode,
+            selected_file=selected_file,
+        )
 
     try:
-        answer, sources, citations, debug_data = answer_query(query, debug_mode=debug_mode)
+        answer, sources, citations, debug_data = answer_query(
+            query,
+            selected_file=selected_file,
+            debug_mode=debug_mode,
+        )
     except Exception as exc:
-        return render_home(request, query=query, error=str(exc), debug_mode=debug_mode)
+        return render_home(
+            request,
+            query=query,
+            error=str(exc),
+            debug_mode=debug_mode,
+            selected_file=selected_file,
+        )
 
     return render_home(
         request,
         answer=answer,
         query=query,
+        selected_file=selected_file,
         sources=sources,
         citations=citations,
         debug_mode=debug_mode,

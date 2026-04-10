@@ -59,6 +59,7 @@ def retrieve_documents_with_query_transform(
     bm25_candidate_k=DEFAULT_BM25_CANDIDATE_K,
     rrf_k=DEFAULT_RRF_K,
     subquery_count=DEFAULT_SUBQUERY_COUNT,
+    metadata_filter=None,
     include_debug=False,
 ):
     """
@@ -88,6 +89,7 @@ def retrieve_documents_with_query_transform(
         candidate_k=candidate_k,
         bm25_candidate_k=bm25_candidate_k,
         rrf_k=rrf_k,
+        metadata_filter=metadata_filter,
         include_debug=include_debug,
     )
     if include_debug:
@@ -153,6 +155,7 @@ def collect_candidate_documents(
     candidate_k=DEFAULT_RERANK_CANDIDATE_K,
     bm25_candidate_k=DEFAULT_BM25_CANDIDATE_K,
     rrf_k=DEFAULT_RRF_K,
+    metadata_filter=None,
     include_debug=False,
 ):
     fused_rankings = []
@@ -165,7 +168,11 @@ def collect_candidate_documents(
 
     for query in queries:
         dense_docs = deduplicate_documents(
-            vectorstore.similarity_search_with_score(query, k=candidate_k)
+            vectorstore.similarity_search_with_score(
+                query,
+                k=candidate_k,
+                filter=metadata_filter,
+            )
         )
         fused_rankings.append(dense_docs)
         if include_debug:
@@ -173,7 +180,12 @@ def collect_candidate_documents(
             debug["dense_total_hits"] += len(dense_docs)
 
         if bm25_index is not None:
-            bm25_docs = retrieve_bm25_documents(query, bm25_index, top_k=bm25_candidate_k)
+            bm25_docs = retrieve_bm25_documents(
+                query,
+                bm25_index,
+                top_k=bm25_candidate_k,
+                metadata_filter=metadata_filter,
+            )
             fused_rankings.append(bm25_docs)
             if include_debug:
                 debug["bm25_hits"][query] = build_hit_debug(bm25_docs)
@@ -243,7 +255,12 @@ def tokenize_for_bm25(text):
     return re.findall(r"\w+", text.lower())
 
 
-def retrieve_bm25_documents(query, bm25_index, top_k=DEFAULT_BM25_CANDIDATE_K):
+def retrieve_bm25_documents(
+    query,
+    bm25_index,
+    top_k=DEFAULT_BM25_CANDIDATE_K,
+    metadata_filter=None,
+):
     tokens = tokenize_for_bm25(query)
     if not tokens:
         return []
@@ -261,9 +278,21 @@ def retrieve_bm25_documents(query, bm25_index, top_k=DEFAULT_BM25_CANDIDATE_K):
         if score <= 0:
             continue
         doc = bm25_index["documents"][index]
+        if not _matches_metadata_filter(doc, metadata_filter):
+            continue
         documents.append((doc, score))
 
     return documents
+
+
+def _matches_metadata_filter(doc, metadata_filter):
+    if not metadata_filter:
+        return True
+
+    for key, expected_value in metadata_filter.items():
+        if doc.metadata.get(key) != expected_value:
+            return False
+    return True
 
 
 def fuse_ranked_documents(rankings, rrf_k=DEFAULT_RRF_K):
