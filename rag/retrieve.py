@@ -4,13 +4,16 @@ import re
 
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
+from rank_bm25 import BM25Okapi
 from sentence_transformers import CrossEncoder
 
 from core.config import (
+    DEFAULT_BM25_CANDIDATE_K,
     DEFAULT_CONTEXT_WINDOW,
     DEFAULT_ENABLE_QUERY_TRANSFORM,
     DEFAULT_MAX_EXPANDED_CHUNKS,
     DEFAULT_RERANK_CANDIDATE_K,
+    DEFAULT_RRF_K,
     DEFAULT_SUBQUERY_COUNT,
     REGISTRY_PATH,
 )
@@ -47,10 +50,14 @@ def retrieve_documents_with_query_transform(
     query,
     k=4,
     reranker=None,
+    bm25_index=None,
     query_transformer=None,
     enable_query_transform=DEFAULT_ENABLE_QUERY_TRANSFORM,
     candidate_k=DEFAULT_RERANK_CANDIDATE_K,
+    bm25_candidate_k=DEFAULT_BM25_CANDIDATE_K,
+    rrf_k=DEFAULT_RRF_K,
     subquery_count=DEFAULT_SUBQUERY_COUNT,
+    include_debug=False,
 ):
     """
     Retrieve with optional query transformation.
@@ -59,20 +66,49 @@ def retrieve_documents_with_query_transform(
     """
 
     search_queries = [query]
+    debug = {
+        "search_queries": [],
+        "dense_hits": {},
+        "bm25_hits": {},
+        "fused_hits": [],
+        "reranked_hits": [],
+        "stage_counts": {},
+    }
     if enable_query_transform and query_transformer is not None:
         sub_queries = generate_sub_queries(query, query_transformer, max_queries=subquery_count)
         search_queries.extend(sub_queries)
+    debug["search_queries"] = search_queries
 
-    candidate_documents = collect_candidate_documents(
+    candidate_documents, fusion_debug = collect_candidate_documents(
         vectorstore,
         search_queries,
+        bm25_index=bm25_index,
         candidate_k=candidate_k,
+        bm25_candidate_k=bm25_candidate_k,
+        rrf_k=rrf_k,
+        include_debug=include_debug,
     )
+    if include_debug:
+        debug.update(fusion_debug)
+        debug["stage_counts"] = {
+            "search_queries": len(search_queries),
+            "fused_candidates": len(candidate_documents),
+        }
 
     if reranker is None:
-        return candidate_documents[:k]
+        top_documents = candidate_documents[:k]
+        if include_debug:
+            debug["reranked_hits"] = build_hit_debug(top_documents)
+            debug["stage_counts"]["final_hits"] = len(top_documents)
+            return top_documents, debug
+        return top_documents
 
-    return rerank_documents(query, candidate_documents, reranker, top_n=k)
+    top_documents = rerank_documents(query, candidate_documents, reranker, top_n=k)
+    if include_debug:
+        debug["reranked_hits"] = build_hit_debug(top_documents)
+        debug["stage_counts"]["final_hits"] = len(top_documents)
+        return top_documents, debug
+    return top_documents
 
 
 def deduplicate_documents(documents):
@@ -108,13 +144,158 @@ def generate_sub_queries(query, query_transformer, max_queries=DEFAULT_SUBQUERY_
     return sub_queries
 
 
-def collect_candidate_documents(vectorstore, queries, candidate_k):
-    merged_documents = []
-    for query in queries:
-        docs = vectorstore.similarity_search_with_score(query, k=candidate_k)
-        merged_documents.extend(docs)
+def collect_candidate_documents(
+    vectorstore,
+    queries,
+    bm25_index=None,
+    candidate_k=DEFAULT_RERANK_CANDIDATE_K,
+    bm25_candidate_k=DEFAULT_BM25_CANDIDATE_K,
+    rrf_k=DEFAULT_RRF_K,
+    include_debug=False,
+):
+    fused_rankings = []
+    debug = {
+        "dense_hits": {},
+        "bm25_hits": {},
+        "dense_total_hits": 0,
+        "bm25_total_hits": 0,
+    }
 
-    return deduplicate_documents(merged_documents)
+    for query in queries:
+        dense_docs = deduplicate_documents(
+            vectorstore.similarity_search_with_score(query, k=candidate_k)
+        )
+        fused_rankings.append(dense_docs)
+        if include_debug:
+            debug["dense_hits"][query] = build_hit_debug(dense_docs)
+            debug["dense_total_hits"] += len(dense_docs)
+
+        if bm25_index is not None:
+            bm25_docs = retrieve_bm25_documents(query, bm25_index, top_k=bm25_candidate_k)
+            fused_rankings.append(bm25_docs)
+            if include_debug:
+                debug["bm25_hits"][query] = build_hit_debug(bm25_docs)
+                debug["bm25_total_hits"] += len(bm25_docs)
+
+    fused_documents = fuse_ranked_documents(fused_rankings, rrf_k=rrf_k)
+    if include_debug:
+        debug["fused_hits"] = build_hit_debug(fused_documents)
+    return fused_documents, debug
+
+
+def load_bm25_index(chunk_registry=None, vectorstore=None):
+    documents = load_corpus_documents(chunk_registry=chunk_registry, vectorstore=vectorstore)
+    tokenized_documents = [tokenize_for_bm25(doc.page_content) for doc in documents]
+
+    if not tokenized_documents:
+        return None
+
+    return {
+        "documents": documents,
+        "tokenized_documents": tokenized_documents,
+        "retriever": BM25Okapi(tokenized_documents),
+    }
+
+
+def load_corpus_documents(chunk_registry=None, vectorstore=None):
+    documents = documents_from_registry(chunk_registry or {})
+    if documents:
+        return documents
+    if vectorstore is not None:
+        return documents_from_vectorstore(vectorstore)
+    return []
+
+
+def documents_from_registry(chunk_registry):
+    documents = []
+    records = chunk_registry.get("by_chunk_id", {})
+
+    for chunk_id, record in records.items():
+        document = _document_from_record(record)
+        if document is None:
+            continue
+        if document.metadata.get("chunk_id") is None:
+            document.metadata["chunk_id"] = chunk_id
+        documents.append(document)
+
+    documents.sort(key=lambda doc: doc.metadata.get("chunk_id", ""))
+    return documents
+
+
+def documents_from_vectorstore(vectorstore):
+    collection = vectorstore._collection.get(include=["documents", "metadatas"])
+    documents = []
+
+    for page_content, metadata in zip(collection.get("documents", []), collection.get("metadatas", [])):
+        documents.append(
+            Document(
+                page_content=page_content,
+                metadata=metadata or {},
+            )
+        )
+
+    return documents
+
+
+def tokenize_for_bm25(text):
+    return re.findall(r"\w+", text.lower())
+
+
+def retrieve_bm25_documents(query, bm25_index, top_k=DEFAULT_BM25_CANDIDATE_K):
+    tokens = tokenize_for_bm25(query)
+    if not tokens:
+        return []
+
+    scores = bm25_index["retriever"].get_scores(tokens)
+    ranked_indexes = sorted(
+        range(len(scores)),
+        key=lambda index: scores[index],
+        reverse=True,
+    )
+
+    documents = []
+    for index in ranked_indexes[:top_k]:
+        score = float(scores[index])
+        if score <= 0:
+            continue
+        doc = bm25_index["documents"][index]
+        documents.append((doc, score))
+
+    return documents
+
+
+def fuse_ranked_documents(rankings, rrf_k=DEFAULT_RRF_K):
+    fused_scores = {}
+    fused_documents = {}
+
+    for ranking in rankings:
+        for rank, (doc, _) in enumerate(ranking, start=1):
+            chunk_id = doc.metadata.get("chunk_id") or doc.page_content.strip()
+            fused_documents[chunk_id] = doc
+            fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + 1.0 / (rrf_k + rank)
+
+    rerank_candidates = []
+    for chunk_id, fused_score in sorted(fused_scores.items(), key=lambda item: item[1], reverse=True):
+        doc = fused_documents[chunk_id]
+        doc.metadata["fusion_score"] = fused_score
+        rerank_candidates.append((doc, fused_score))
+
+    return rerank_candidates
+
+
+def build_hit_debug(documents):
+    hits = []
+    for doc, score in documents:
+        hits.append(
+            {
+                "chunk_id": doc.metadata.get("chunk_id", "unknown"),
+                "source": doc.metadata.get("file_name", "Unknown"),
+                "page": doc.metadata.get("page"),
+                "score": round(float(score), 4),
+                "preview": doc.page_content[:180].replace("\n", " "),
+            }
+        )
+    return hits
 
 
 def load_reranker(model_name):
@@ -137,7 +318,8 @@ def rerank_documents(query, documents, reranker, top_n):
     top_documents = []
     for doc, rerank_score, original_score in reranked[:top_n]:
         doc.metadata["rerank_score"] = rerank_score
-        doc.metadata["retrieval_score"] = original_score
+        if doc.metadata.get("retrieval_score") is None:
+            doc.metadata["retrieval_score"] = original_score
         top_documents.append((doc, rerank_score))
 
     return top_documents
