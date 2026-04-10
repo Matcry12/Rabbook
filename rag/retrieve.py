@@ -1,11 +1,20 @@
 from pathlib import Path
 import json
+import re
 
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
+from sentence_transformers import CrossEncoder
 
-from core.config import DEFAULT_CONTEXT_WINDOW, DEFAULT_MAX_EXPANDED_CHUNKS, REGISTRY_PATH
-from rag.prompt import build_rag_prompt
+from core.config import (
+    DEFAULT_CONTEXT_WINDOW,
+    DEFAULT_ENABLE_QUERY_TRANSFORM,
+    DEFAULT_MAX_EXPANDED_CHUNKS,
+    DEFAULT_RERANK_CANDIDATE_K,
+    DEFAULT_SUBQUERY_COUNT,
+    REGISTRY_PATH,
+)
+from rag.prompt import build_rag_prompt, rewrite_query
 
 
 def load_vectorstore(persist_dir, embeddings):
@@ -19,25 +28,119 @@ def load_vectorstore(persist_dir, embeddings):
     )
 
 
-def retrieve_documents(vectorstore, query, k=4):
+def retrieve_documents(vectorstore, query, k=4, reranker=None, candidate_k=DEFAULT_RERANK_CANDIDATE_K):
     """
-    Retrieve the top unique chunks for a query.
+    Retrieve candidate chunks with embeddings first, then optionally rerank them.
     """
 
-    docs = vectorstore.similarity_search_with_score(query, k=k * 2)
+    docs = vectorstore.similarity_search_with_score(query, k=max(k, candidate_k))
+    unique_docs = deduplicate_documents(docs)
 
+    if reranker is None:
+        return unique_docs[:k]
+
+    return rerank_documents(query, unique_docs, reranker, top_n=k)
+
+
+def retrieve_documents_with_query_transform(
+    vectorstore,
+    query,
+    k=4,
+    reranker=None,
+    query_transformer=None,
+    enable_query_transform=DEFAULT_ENABLE_QUERY_TRANSFORM,
+    candidate_k=DEFAULT_RERANK_CANDIDATE_K,
+    subquery_count=DEFAULT_SUBQUERY_COUNT,
+):
+    """
+    Retrieve with optional query transformation.
+    The important part is that reranking happens once on the merged candidate set,
+    using the original user query as the final ranking signal.
+    """
+
+    search_queries = [query]
+    if enable_query_transform and query_transformer is not None:
+        sub_queries = generate_sub_queries(query, query_transformer, max_queries=subquery_count)
+        search_queries.extend(sub_queries)
+
+    candidate_documents = collect_candidate_documents(
+        vectorstore,
+        search_queries,
+        candidate_k=candidate_k,
+    )
+
+    if reranker is None:
+        return candidate_documents[:k]
+
+    return rerank_documents(query, candidate_documents, reranker, top_n=k)
+
+
+def deduplicate_documents(documents):
     unique_docs = []
     seen_content = set()
-    for doc, score in docs:
+
+    for doc, score in documents:
         content = doc.page_content.strip()
         if content in seen_content:
             continue
         unique_docs.append((doc, score))
         seen_content.add(content)
-        if len(unique_docs) >= k:
-            break
 
     return unique_docs
+
+
+def generate_sub_queries(query, query_transformer, max_queries=DEFAULT_SUBQUERY_COUNT):
+    prompt = rewrite_query(query)
+    response = query_transformer.invoke(prompt)
+    response_text = getattr(response, "content", None) or getattr(response, "text", "")
+
+    sub_queries = []
+    for line in response_text.splitlines():
+        cleaned = re.sub(r"^\s*\d+[\).\-\s]+", "", line).strip()
+        if not cleaned or cleaned.lower().startswith("sub-queries"):
+            continue
+        if cleaned.lower() == query.lower():
+            continue
+        sub_queries.append(cleaned)
+        if len(sub_queries) >= max_queries:
+            break
+
+    return sub_queries
+
+
+def collect_candidate_documents(vectorstore, queries, candidate_k):
+    merged_documents = []
+    for query in queries:
+        docs = vectorstore.similarity_search_with_score(query, k=candidate_k)
+        merged_documents.extend(docs)
+
+    return deduplicate_documents(merged_documents)
+
+
+def load_reranker(model_name):
+    return CrossEncoder(model_name)
+
+
+def rerank_documents(query, documents, reranker, top_n):
+    if not documents:
+        return []
+
+    pairs = [(query, doc.page_content) for doc, _ in documents]
+    rerank_scores = reranker.predict(pairs)
+
+    reranked = []
+    for (doc, original_score), rerank_score in zip(documents, rerank_scores):
+        reranked.append((doc, float(rerank_score), float(original_score)))
+
+    reranked.sort(key=lambda item: item[1], reverse=True)
+
+    top_documents = []
+    for doc, rerank_score, original_score in reranked[:top_n]:
+        doc.metadata["rerank_score"] = rerank_score
+        doc.metadata["retrieval_score"] = original_score
+        top_documents.append((doc, rerank_score))
+
+    return top_documents
 
 
 def load_chunk_registry(registry_path=REGISTRY_PATH):
@@ -196,7 +299,9 @@ def format_context(documents):
         page_label = page if page is not None else "n/a"
         is_retrieved_hit = doc.metadata.get("is_retrieved_hit", False)
         window_offset = doc.metadata.get("window_offset", 0)
+        rerank_score = doc.metadata.get("rerank_score")
 
+        score_label = rerank_score if rerank_score is not None else score
         parts.append(
             (
                 f"Chunk {index}\n"
@@ -206,7 +311,7 @@ def format_context(documents):
                 f"Page: {page_label}\n"
                 f"Matched Hit: {'yes' if is_retrieved_hit else 'no'}\n"
                 f"Window Offset: {window_offset}\n"
-                f"Score: {1 - score / 4}\n"
+                f"Score: {score_label}\n"
                 f"Content: {doc.page_content}"
             )
         )

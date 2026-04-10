@@ -53,9 +53,16 @@
             <div class="sources">
                 {% for item in sources %}
                 <article class="source-card">
-                    <p class="source-meta"><strong>Source:</strong> {{ item.source }}</p>
-                    <p class="source-meta"><strong>Raw score:</strong> {{ item.score }}</p>
-                    <p>{{ item.content }}</p>
+                    <div class="source-header">
+                        <p class="source-meta"><strong>Source:</strong> {{ item.source }}</p>
+                        <p class="source-meta"><strong>Page:</strong> {{ item.page if item.page is not none else 'n/a' }}</p>
+                        <p class="source-meta"><strong>Chunk ID:</strong> {{ item.chunk_id }}</p>
+                    </div>
+                    <div class="score-row">
+                        <span class="score-pill">Raw retrieval: {{ item.retrieval_score }}</span>
+                        <span class="score-pill">Rerank: {{ item.rerank_score }}</span>
+                    </div>
+                    <pre class="chunk-content">{{ item.content }}</pre>
                 </article>
                 {% endfor %}
             </div>

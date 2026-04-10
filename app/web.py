@@ -13,8 +13,11 @@ from langchain_groq import ChatGroq
 from core.config import (
     DB_DIR,
     DEFAULT_CONTEXT_WINDOW,
+    DEFAULT_ENABLE_QUERY_TRANSFORM,
     DEFAULT_LLM_MODEL,
     DEFAULT_MAX_EXPANDED_CHUNKS,
+    DEFAULT_RERANK_CANDIDATE_K,
+    DEFAULT_RERANK_MODEL,
     DEFAULT_RETRIEVAL_K,
     REGISTRY_PATH,
     STATIC_DIR,
@@ -29,8 +32,9 @@ from rag.retrieve import (
     expand_with_context_window,
     format_context,
     generate_answer,
+    load_reranker,
     load_vectorstore,
-    retrieve_documents,
+    retrieve_documents_with_query_transform,
 )
 
 
@@ -54,6 +58,11 @@ def get_llm() -> ChatGoogleGenerativeAI:
         model=DEFAULT_LLM_MODEL,
         temperature=0.3,
     )
+
+
+@lru_cache(maxsize=1)
+def get_reranker():
+    return load_reranker(DEFAULT_RERANK_MODEL)
 
 
 def get_vectorstore():
@@ -91,16 +100,24 @@ def render_home(request: Request, **context):
 
 
 def answer_query(query):
-    documents = retrieve_documents(get_vectorstore(), query, k=DEFAULT_RETRIEVAL_K)
-    documents = expand_with_context_window(
-        documents,
+    retrieved_documents = retrieve_documents_with_query_transform(
+        get_vectorstore(),
+        query,
+        k=DEFAULT_RETRIEVAL_K,
+        reranker=get_reranker(),
+        query_transformer=get_llm(),
+        enable_query_transform=DEFAULT_ENABLE_QUERY_TRANSFORM,
+        candidate_k=DEFAULT_RERANK_CANDIDATE_K,
+    )
+    expanded_documents = expand_with_context_window(
+        retrieved_documents,
         get_chunk_registry(),
         window_size=DEFAULT_CONTEXT_WINDOW,
         max_expanded_chunks=DEFAULT_MAX_EXPANDED_CHUNKS,
     )
-    context = format_context(documents)
+    context = format_context(expanded_documents)
     answer = generate_answer(query, context, get_llm())
-    return answer, build_sources(documents)
+    return answer, build_sources(retrieved_documents)
 
 
 def build_sources(documents):
@@ -109,11 +126,18 @@ def build_sources(documents):
             "source": doc.metadata.get("file_name", "Unknown"),
             "page": doc.metadata.get("page"),
             "chunk_id": doc.metadata.get("chunk_id", "unknown"),
-            "score": f"{score:.4f}",
+            "retrieval_score": _format_score(doc.metadata.get("retrieval_score", score)),
+            "rerank_score": _format_score(doc.metadata.get("rerank_score", score)),
             "content": doc.page_content,
         }
         for doc, score in documents
     ]
+
+
+def _format_score(score):
+    if score is None:
+        return "n/a"
+    return f"{float(score):.4f}"
 
 
 def get_upload_target(document: UploadFile):
