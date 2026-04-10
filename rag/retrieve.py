@@ -17,7 +17,7 @@ from core.config import (
     DEFAULT_SUBQUERY_COUNT,
     REGISTRY_PATH,
 )
-from rag.prompt import build_rag_prompt, rewrite_query
+from rag.prompt import build_citation_repair_prompt, build_rag_prompt, rewrite_query
 
 
 def load_vectorstore(persist_dir, embeddings):
@@ -469,11 +469,11 @@ def _hit_order_key(item):
 
 def format_context(documents):
     """
-    Format retrieved chunks into one context string.
+    Format retrieved chunks into one context string with source numbers.
     """
 
     parts = []
-    for index, (doc, score) in enumerate(documents):
+    for index, (doc, score) in enumerate(documents, start=1):
         file_name = doc.metadata.get("file_name", "unknown")
         page = doc.metadata.get("page")
         chunk_id = doc.metadata.get("chunk_id", "unknown")
@@ -486,7 +486,7 @@ def format_context(documents):
         score_label = rerank_score if rerank_score is not None else score
         parts.append(
             (
-                f"Chunk {index}\n"
+                f"Source [{index}]\n"
                 f"File: {file_name}\n"
                 f"Document ID: {document_id}\n"
                 f"Chunk ID: {chunk_id}\n"
@@ -500,6 +500,25 @@ def format_context(documents):
     return "\n\n".join(parts)
 
 
+def build_citation_sources(documents):
+    citation_sources = []
+
+    for index, (doc, score) in enumerate(documents, start=1):
+        citation_sources.append(
+            {
+                "number": index,
+                "source": doc.metadata.get("file_name", "Unknown"),
+                "page": doc.metadata.get("page"),
+                "chunk_id": doc.metadata.get("chunk_id", "unknown"),
+                "retrieval_score": doc.metadata.get("retrieval_score", score),
+                "rerank_score": doc.metadata.get("rerank_score", score),
+                "content": doc.page_content,
+            }
+        )
+
+    return citation_sources
+
+
 def generate_answer(query, context, llm):
     """
     Generate an answer from the retrieved context.
@@ -511,5 +530,76 @@ def generate_answer(query, context, llm):
     if llm is None:
         return "Language model is not available."
 
+    valid_sources = extract_valid_source_numbers(context)
     response = llm.invoke(build_rag_prompt(context, query))
-    return response.text.strip() if response else "No response from language model."
+    answer = extract_response_text(response)
+
+    if not answer:
+        return "No response from language model."
+
+    if answer_has_valid_citations(answer, valid_sources):
+        return answer
+
+    repaired_answer = repair_answer_with_citations(
+        query=query,
+        context=context,
+        draft_answer=answer,
+        llm=llm,
+        valid_sources=valid_sources,
+    )
+    if repaired_answer:
+        return repaired_answer
+
+    return answer
+
+
+def repair_answer_with_citations(query, context, draft_answer, llm, valid_sources):
+    if not valid_sources:
+        return draft_answer
+
+    repair_prompt = build_citation_repair_prompt(
+        context=context,
+        question=query,
+        answer=draft_answer,
+        valid_sources=valid_sources,
+    )
+    repaired_response = llm.invoke(repair_prompt)
+    repaired_answer = extract_response_text(repaired_response)
+
+    if not repaired_answer:
+        return None
+
+    if answer_has_valid_citations(repaired_answer, valid_sources):
+        return repaired_answer
+
+    return None
+
+
+def extract_response_text(response):
+    if response is None:
+        return ""
+
+    return (
+        getattr(response, "text", None)
+        or getattr(response, "content", None)
+        or ""
+    ).strip()
+
+
+def extract_valid_source_numbers(context):
+    numbers = re.findall(r"Source \[(\d+)\]", context)
+    return sorted({int(number) for number in numbers})
+
+
+def extract_citation_numbers(answer):
+    numbers = re.findall(r"\[(\d+)\]", answer)
+    return [int(number) for number in numbers]
+
+
+def answer_has_valid_citations(answer, valid_sources):
+    citation_numbers = extract_citation_numbers(answer)
+    if not citation_numbers:
+        return False
+
+    valid_source_set = set(valid_sources)
+    return all(number in valid_source_set for number in citation_numbers)

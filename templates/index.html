@@ -51,6 +51,29 @@
         </section>
         {% endif %}
 
+        {% if citations %}
+        <section class="panel">
+            <h2>Cited Sources In Answer</h2>
+            <div class="sources">
+                {% for item in citations %}
+                <article class="source-card">
+                    <div class="source-header">
+                        <p class="source-meta"><strong>Citation:</strong> [{{ item.number }}]</p>
+                        <p class="source-meta"><strong>Source:</strong> {{ item.source }}</p>
+                        <p class="source-meta"><strong>Page:</strong> {{ item.page if item.page is not none else 'n/a' }}</p>
+                        <p class="source-meta"><strong>Chunk ID:</strong> {{ item.chunk_id }}</p>
+                    </div>
+                    <div class="score-row">
+                        <span class="score-pill">Raw retrieval: {{ item.retrieval_score }}</span>
+                        <span class="score-pill">Rerank: {{ item.rerank_score }}</span>
+                    </div>
+                    <pre class="chunk-content">{{ item.content }}</pre>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
         {% if sources %}
         <section class="panel">
             <h2>Retrieved Chunks</h2>

@@ -31,7 +31,9 @@ from rag.ingest import add_documents_to_vectorstore
 from rag.registry import load_chunk_registry
 from rag.retrieve import (
     build_hit_debug,
+    build_citation_sources,
     expand_with_context_window,
+    extract_citation_numbers,
     format_context,
     generate_answer,
     load_bm25_index,
@@ -110,6 +112,7 @@ def render_home(request: Request, **context):
         "answer": None,
         "query": "",
         "sources": [],
+        "citations": [],
         "debug_mode": False,
         "debug_data": None,
         "message": None,
@@ -148,7 +151,8 @@ def answer_query(query, debug_mode=False):
         debug_data["stage_counts"]["expanded_context"] = len(expanded_documents)
     context = format_context(expanded_documents)
     answer = generate_answer(query, context, get_llm())
-    return answer, build_sources(retrieved_documents), debug_data
+    citations = build_citations(expanded_documents, answer)
+    return answer, build_sources(retrieved_documents), citations, debug_data
 
 
 def build_sources(documents):
@@ -163,6 +167,21 @@ def build_sources(documents):
         }
         for doc, score in documents
     ]
+
+
+def build_citations(documents, answer):
+    citations = build_citation_sources(documents)
+    used_numbers = set(extract_citation_numbers(answer))
+
+    filtered_citations = []
+    for item in citations:
+        if item["number"] not in used_numbers:
+            continue
+        item["retrieval_score"] = _format_score(item.get("retrieval_score"))
+        item["rerank_score"] = _format_score(item.get("rerank_score"))
+        filtered_citations.append(item)
+
+    return filtered_citations
 
 
 def _format_score(score):
@@ -208,7 +227,7 @@ async def ask(request: Request):
         return render_home(request, error="Please enter a question.", debug_mode=debug_mode)
 
     try:
-        answer, sources, debug_data = answer_query(query, debug_mode=debug_mode)
+        answer, sources, citations, debug_data = answer_query(query, debug_mode=debug_mode)
     except Exception as exc:
         return render_home(request, query=query, error=str(exc), debug_mode=debug_mode)
 
@@ -217,6 +236,7 @@ async def ask(request: Request):
         answer=answer,
         query=query,
         sources=sources,
+        citations=citations,
         debug_mode=debug_mode,
         debug_data=debug_data,
     )
