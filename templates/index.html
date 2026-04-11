@@ -26,6 +26,23 @@
                     <option value="{{ file_name }}" {% if selected_file == file_name %}selected{% endif %}>{{ file_name }}</option>
                     {% endfor %}
                 </select>
+                <label for="selected_file_type">File Type</label>
+                <select id="selected_file_type" name="selected_file_type">
+                    <option value="">All file types</option>
+                    {% for file_type in available_file_types %}
+                    <option value="{{ file_type }}" {% if selected_file_type == file_type %}selected{% endif %}>{{ file_type|upper }}</option>
+                    {% endfor %}
+                </select>
+                <div class="filter-grid">
+                    <div>
+                        <label for="page_start">Start Page</label>
+                        <input id="page_start" name="page_start" type="number" min="1" placeholder="Any" value="{{ page_start }}">
+                    </div>
+                    <div>
+                        <label for="page_end">End Page</label>
+                        <input id="page_end" name="page_end" type="number" min="1" placeholder="Any" value="{{ page_end }}">
+                    </div>
+                </div>
                 <label class="checkbox-row" for="debug_mode">
                     <input id="debug_mode" name="debug_mode" type="checkbox" {% if debug_mode %}checked{% endif %}>
                     <span>Show retrieval debug</span>
@@ -120,7 +137,20 @@
             <div class="debug-block">
                 <h3>Grounding Status</h3>
                 <ul class="debug-list">
-                    <li><strong>Metadata Filter:</strong> {{ debug_data.metadata_filter.file_name if debug_data.metadata_filter else 'All documents' }}</li>
+                    <li><strong>Metadata Filter:</strong>
+                        {% if debug_data.metadata_filter %}
+                        file={{ debug_data.metadata_filter.file_name if debug_data.metadata_filter.file_name else 'all' }},
+                        type={{ debug_data.metadata_filter.file_type if debug_data.metadata_filter.file_type else 'all' }},
+                        pages=
+                        {% if debug_data.metadata_filter.page_range %}
+                        {{ debug_data.metadata_filter.page_range.start if debug_data.metadata_filter.page_range.start is not none else 'start' }}-{{ debug_data.metadata_filter.page_range.end if debug_data.metadata_filter.page_range.end is not none else 'end' }}
+                        {% else %}
+                        all
+                        {% endif %}
+                        {% else %}
+                        All documents
+                        {% endif %}
+                    </li>
                     <li><strong>Result:</strong> {{ 'PASS' if debug_data.grounding.passed else 'FAIL' }}</li>
                     <li><strong>Failed At:</strong> {{ debug_data.grounding.stage }}</li>
                     <li><strong>Reason:</strong> {{ debug_data.grounding.reason }}</li>
