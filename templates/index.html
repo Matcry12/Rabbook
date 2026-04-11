@@ -60,6 +60,30 @@
             </form>
         </section>
 
+        <section class="panel">
+            <h2>Document Library</h2>
+            {% if library_documents %}
+            <div class="library-grid">
+                {% for document in library_documents %}
+                <article class="library-card">
+                    <div class="library-card__meta">
+                        <p><strong>File:</strong> {{ document.file_name }}</p>
+                        <p><strong>Type:</strong> {{ document.file_type|upper }}</p>
+                        <p><strong>Chunks:</strong> {{ document.chunk_count }}</p>
+                        <p><strong>Pages:</strong> {{ document.page_count if document.page_count is not none else 'n/a' }}</p>
+                        <p><strong>Document ID:</strong> {{ document.document_id }}</p>
+                    </div>
+                    <form action="/documents/{{ document.document_id }}/delete" method="post">
+                        <button type="submit" class="danger-button">Delete</button>
+                    </form>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>No documents in the library yet.</p>
+            {% endif %}
+        </section>
+
         {% if message %}
         <section class="notice success">{{ message }}</section>
         {% endif %}

@@ -31,7 +31,7 @@ from core.config import (
     get_google_api_key,
 )
 from rag.ingest import add_documents_to_vectorstore
-from rag.registry import load_chunk_registry
+from rag.registry import delete_document_from_registry, list_documents, load_chunk_registry
 from rag.retrieve import (
     answer_has_valid_citations,
     build_hit_debug,
@@ -123,6 +123,7 @@ def render_home(request: Request, **context):
         "page_end": "",
         "available_files": get_available_files(),
         "available_file_types": get_available_file_types(),
+        "library_documents": get_library_documents(),
         "sources": [],
         "citations": [],
         "debug_mode": False,
@@ -330,6 +331,30 @@ def get_available_file_types():
     return sorted(file_types)
 
 
+def get_library_documents():
+    return list_documents(str(REGISTRY_PATH))
+
+
+def delete_document(document_id):
+    document = next(
+        (item for item in get_library_documents() if item["document_id"] == document_id),
+        None,
+    )
+    if document is None:
+        raise ValueError("Document not found.")
+
+    # Delete by document metadata so all chunks for this file are removed together.
+    get_vectorstore()._collection.delete(where={"document_id": document_id})
+    delete_document_from_registry(document_id, str(REGISTRY_PATH))
+
+    source_path = Path(document.get("source", ""))
+    if source_path.exists() and source_path.parent == UPLOAD_DIR:
+        source_path.unlink()
+
+    refresh_runtime_state()
+    return document
+
+
 def get_upload_target(document: UploadFile):
     if not document.filename:
         raise ValueError("Please choose a file to upload.")
@@ -437,3 +462,18 @@ async def upload_document(request: Request, document: UploadFile = File(...)):
         return render_home(request, error=str(exc))
 
     return render_home(request, message=f"Added {filename} to the vector store.")
+
+
+@app.post("/documents/{document_id}/delete", response_class=HTMLResponse)
+async def delete_document_route(request: Request, document_id: str):
+    try:
+        deleted_document = delete_document(document_id)
+    except ValueError as exc:
+        return render_home(request, error=str(exc))
+    except Exception as exc:
+        return render_home(request, error=str(exc))
+
+    return render_home(
+        request,
+        message=f"Deleted {deleted_document['file_name']} from the library.",
+    )

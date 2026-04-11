@@ -138,6 +138,10 @@ button:hover {
     filter: brightness(1.05);
 }
 
+.danger-button {
+    background: linear-gradient(135deg, #b44949 0%, #8d2d2d 100%);
+}
+
 .notice.success {
     background: var(--success);
 }
@@ -154,6 +158,31 @@ button:hover {
 .sources {
     display: grid;
     gap: 18px;
+}
+
+.library-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.library-card {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid rgba(125, 49, 23, 0.16);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 12px 24px rgba(62, 44, 28, 0.08);
+}
+
+.library-card__meta {
+    display: grid;
+    gap: 6px;
+}
+
+.library-card__meta p {
+    margin: 0;
+    color: #4a3f36;
 }
 
 .source-card {
