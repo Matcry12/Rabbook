@@ -118,7 +118,11 @@ def render_home(request: Request, **context):
         "answer": None,
         "query": "",
         "selected_file": "",
+        "selected_file_type": "",
+        "page_start": "",
+        "page_end": "",
         "available_files": get_available_files(),
+        "available_file_types": get_available_file_types(),
         "sources": [],
         "citations": [],
         "debug_mode": False,
@@ -130,8 +134,20 @@ def render_home(request: Request, **context):
     return templates.TemplateResponse("index.html", page_context)
 
 
-def answer_query(query, selected_file="", debug_mode=False):
-    metadata_filter = build_metadata_filter(selected_file)
+def answer_query(
+    query,
+    selected_file="",
+    selected_file_type="",
+    page_start="",
+    page_end="",
+    debug_mode=False,
+):
+    metadata_filter = build_metadata_filter(
+        selected_file=selected_file,
+        selected_file_type=selected_file_type,
+        page_start=page_start,
+        page_end=page_end,
+    )
     retrieval_result = retrieve_documents_with_query_transform(
         get_vectorstore(),
         query,
@@ -250,10 +266,48 @@ def _answer_is_grounded(answer, context):
     return answer_has_valid_citations(answer, valid_sources)
 
 
-def build_metadata_filter(selected_file):
-    if not selected_file:
+def build_metadata_filter(
+    selected_file="",
+    selected_file_type="",
+    page_start="",
+    page_end="",
+):
+    metadata_filter = {}
+
+    if selected_file:
+        metadata_filter["file_name"] = selected_file
+
+    if selected_file_type:
+        metadata_filter["file_type"] = selected_file_type
+
+    page_range = build_page_range(page_start, page_end)
+    if page_range is not None:
+        metadata_filter["page_range"] = page_range
+
+    return metadata_filter or None
+
+
+def build_page_range(page_start, page_end):
+    start = parse_page_number(page_start)
+    end = parse_page_number(page_end)
+
+    if start is None and end is None:
         return None
-    return {"file_name": selected_file}
+
+    if start is not None and end is not None and start > end:
+        start, end = end, start
+
+    return {"start": start, "end": end}
+
+
+def parse_page_number(value):
+    if value in (None, ""):
+        return None
+
+    page_number = int(str(value).strip())
+    if page_number < 1:
+        raise ValueError("Page filters must be 1 or greater.")
+    return page_number
 
 
 def get_available_files():
@@ -264,6 +318,16 @@ def get_available_files():
         if record.get("metadata", {}).get("file_name")
     }
     return sorted(file_names)
+
+
+def get_available_file_types():
+    records = get_chunk_registry().get("by_chunk_id", {})
+    file_types = {
+        record.get("metadata", {}).get("file_type", "")
+        for record in records.values()
+        if record.get("metadata", {}).get("file_type")
+    }
+    return sorted(file_types)
 
 
 def get_upload_target(document: UploadFile):
@@ -298,6 +362,9 @@ async def ask(request: Request):
     form = await request.form()
     query = str(form.get("query", "")).strip()
     selected_file = str(form.get("selected_file", "")).strip()
+    selected_file_type = str(form.get("selected_file_type", "")).strip()
+    page_start = str(form.get("page_start", "")).strip()
+    page_end = str(form.get("page_end", "")).strip()
     debug_mode = str(form.get("debug_mode", "")).lower() in {"on", "true", "1"}
 
     if not query:
@@ -306,13 +373,30 @@ async def ask(request: Request):
             error="Please enter a question.",
             debug_mode=debug_mode,
             selected_file=selected_file,
+            selected_file_type=selected_file_type,
+            page_start=page_start,
+            page_end=page_end,
         )
 
     try:
         answer, sources, citations, debug_data = answer_query(
             query,
             selected_file=selected_file,
+            selected_file_type=selected_file_type,
+            page_start=page_start,
+            page_end=page_end,
             debug_mode=debug_mode,
+        )
+    except ValueError as exc:
+        return render_home(
+            request,
+            query=query,
+            error=str(exc),
+            debug_mode=debug_mode,
+            selected_file=selected_file,
+            selected_file_type=selected_file_type,
+            page_start=page_start,
+            page_end=page_end,
         )
     except Exception as exc:
         return render_home(
@@ -321,6 +405,9 @@ async def ask(request: Request):
             error=str(exc),
             debug_mode=debug_mode,
             selected_file=selected_file,
+            selected_file_type=selected_file_type,
+            page_start=page_start,
+            page_end=page_end,
         )
 
     return render_home(
@@ -328,6 +415,9 @@ async def ask(request: Request):
         answer=answer,
         query=query,
         selected_file=selected_file,
+        selected_file_type=selected_file_type,
+        page_start=page_start,
+        page_end=page_end,
         sources=sources,
         citations=citations,
         debug_mode=debug_mode,

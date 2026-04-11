@@ -165,15 +165,21 @@ def collect_candidate_documents(
         "dense_total_hits": 0,
         "bm25_total_hits": 0,
     }
+    chroma_filter = build_chroma_filter(metadata_filter)
+    dense_fetch_k = candidate_k * 4 if metadata_filter else candidate_k
 
     for query in queries:
-        dense_docs = deduplicate_documents(
-            vectorstore.similarity_search_with_score(
-                query,
-                k=candidate_k,
-                filter=metadata_filter,
-            )
+        dense_docs = filter_documents_by_metadata(
+            deduplicate_documents(
+                vectorstore.similarity_search_with_score(
+                    query,
+                    k=dense_fetch_k,
+                    filter=chroma_filter,
+                )
+            ),
+            metadata_filter,
         )
+        dense_docs = dense_docs[:candidate_k]
         fused_rankings.append(dense_docs)
         if include_debug:
             debug["dense_hits"][query] = build_hit_debug(dense_docs)
@@ -290,9 +296,45 @@ def _matches_metadata_filter(doc, metadata_filter):
         return True
 
     for key, expected_value in metadata_filter.items():
+        if key == "page_range":
+            page_value = doc.metadata.get("page")
+            if page_value is None:
+                return False
+            page_number = int(page_value) + 1
+            start = expected_value.get("start")
+            end = expected_value.get("end")
+            if start is not None and page_number < start:
+                return False
+            if end is not None and page_number > end:
+                return False
+            continue
         if doc.metadata.get(key) != expected_value:
             return False
     return True
+
+
+def filter_documents_by_metadata(documents, metadata_filter):
+    if not metadata_filter:
+        return documents
+
+    filtered_documents = []
+    for doc, score in documents:
+        if _matches_metadata_filter(doc, metadata_filter):
+            filtered_documents.append((doc, score))
+    return filtered_documents
+
+
+def build_chroma_filter(metadata_filter):
+    if not metadata_filter:
+        return None
+
+    chroma_filter = {}
+    for key, value in metadata_filter.items():
+        if key == "page_range":
+            continue
+        chroma_filter[key] = value
+
+    return chroma_filter or None
 
 
 def fuse_ranked_documents(rankings, rrf_k=DEFAULT_RRF_K):

@@ -95,7 +95,9 @@ label {
 }
 
 textarea,
-input[type="file"] {
+input[type="file"],
+input[type="number"],
+select {
     width: 100%;
     border: 1px solid var(--border);
     border-radius: 14px;
@@ -107,6 +109,17 @@ input[type="file"] {
 textarea {
     resize: vertical;
     min-height: 120px;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.filter-grid > div {
+    display: grid;
+    gap: 8px;
 }
 
 button {
@@ -238,6 +251,12 @@ button:hover {
 
 .debug-list li {
     line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 700px) {
