@@ -32,6 +32,12 @@ from core.config import (
     get_google_api_key,
 )
 from rag.ingest import add_documents_to_vectorstore, add_loaded_documents_to_vectorstore
+from rag.history import (
+    delete_history_entry,
+    get_history_entry,
+    load_history,
+    save_history_entry,
+)
 from rag.notes import delete_note, load_notes, save_note
 from rag.registry import delete_document_from_registry, list_documents, load_chunk_registry
 from rag.retrieve import (
@@ -127,6 +133,7 @@ def render_home(request: Request, **context):
         "available_files": get_available_files(),
         "available_file_types": get_available_file_types(),
         "library_documents": get_library_documents(),
+        "history_items": get_history_items(),
         "saved_notes": get_saved_notes(),
         "sources": [],
         "citations": [],
@@ -343,6 +350,10 @@ def get_saved_notes():
     return load_notes()
 
 
+def get_history_items():
+    return load_history()
+
+
 def delete_document(document_id):
     document = next(
         (item for item in get_library_documents() if item["document_id"] == document_id),
@@ -398,6 +409,26 @@ def parse_saved_citations(citations_json):
 
     citations = json.loads(citations_json)
     return citations if isinstance(citations, list) else []
+
+
+def save_history_item(
+    query,
+    answer,
+    citations,
+    selected_file="",
+    selected_file_type="",
+    page_start="",
+    page_end="",
+):
+    return save_history_entry(
+        query=query,
+        answer=answer,
+        citations=citations,
+        selected_file=selected_file,
+        selected_file_type=selected_file_type,
+        page_start=page_start,
+        page_end=page_end,
+    )
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -457,6 +488,16 @@ async def ask(request: Request):
             page_start=page_start,
             page_end=page_end,
         )
+
+    save_history_item(
+        query=query,
+        answer=answer,
+        citations=citations,
+        selected_file=selected_file,
+        selected_file_type=selected_file_type,
+        page_start=page_start,
+        page_end=page_end,
+    )
 
     return render_home(
         request,
@@ -549,3 +590,28 @@ async def delete_note_route(request: Request, note_id: str):
         return render_home(request, error=str(exc))
 
     return render_home(request, message="Deleted note.")
+
+
+@app.post("/history/{history_id}/delete", response_class=HTMLResponse)
+async def delete_history_route(request: Request, history_id: str):
+    try:
+        delete_history_entry(history_id)
+    except ValueError as exc:
+        return render_home(request, error=str(exc))
+
+    return render_home(request, message="Deleted history item.")
+
+
+@app.post("/history/{history_id}/notes", response_class=HTMLResponse)
+async def save_history_to_notes_route(request: Request, history_id: str):
+    try:
+        item = get_history_entry(history_id)
+        save_note(
+            query=item.get("query", ""),
+            answer=item.get("answer", ""),
+            citations=item.get("citations", []),
+        )
+    except ValueError as exc:
+        return render_home(request, error=str(exc))
+
+    return render_home(request, message="Saved history item as note.")

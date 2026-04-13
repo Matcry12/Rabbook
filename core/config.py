@@ -10,6 +10,7 @@ UPLOAD_DIR = DATA_DIR / "uploads"
 DB_DIR = BASE_DIR / "chroma_db"
 REGISTRY_PATH = BASE_DIR / "chunk_registry.json"
 NOTES_PATH = BASE_DIR / "notes.json"
+HISTORY_PATH = BASE_DIR / "history.json"
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 

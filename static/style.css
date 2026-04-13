@@ -230,6 +230,12 @@ button:hover {
     margin-bottom: 16px;
 }
 
+.action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 .score-pill {
     display: inline-flex;
     align-items: center;

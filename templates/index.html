@@ -116,6 +116,47 @@
         {% endif %}
 
         <section class="panel">
+            <h2>Chat History</h2>
+            {% if history_items %}
+            <div class="library-grid">
+                {% for item in history_items %}
+                <article class="library-card">
+                    <div class="library-card__meta">
+                        <p><strong>Asked:</strong> {{ item.created_at }}</p>
+                        <p><strong>Question:</strong> {{ item.query }}</p>
+                        {% if item.selected_file or item.selected_file_type or item.page_start or item.page_end %}
+                        <p><strong>Filters:</strong>
+                            file={{ item.selected_file if item.selected_file else 'all' }},
+                            type={{ item.selected_file_type if item.selected_file_type else 'all' }},
+                            pages={{ item.page_start if item.page_start else 'start' }}-{{ item.page_end if item.page_end else 'end' }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="answer">{{ item.answer }}</div>
+                    {% if item.citations %}
+                    <div class="score-row">
+                        {% for citation in item.citations %}
+                        <span class="score-pill">[{{ citation.number }}] {{ citation.source }}{% if citation.page is not none %}, p.{{ citation.page }}{% endif %}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="action-row">
+                        <form action="/history/{{ item.history_id }}/notes" method="post">
+                            <button type="submit">Save To Notes</button>
+                        </form>
+                        <form action="/history/{{ item.history_id }}/delete" method="post">
+                            <button type="submit" class="danger-button">Delete</button>
+                        </form>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>No chat history yet.</p>
+            {% endif %}
+        </section>
+
+        <section class="panel">
             <h2>Saved Notes</h2>
             {% if saved_notes %}
             <div class="library-grid">
