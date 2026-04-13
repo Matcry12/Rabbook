@@ -155,6 +155,10 @@ button:hover {
     line-height: 1.6;
 }
 
+.save-note-form {
+    margin-top: 16px;
+}
+
 .sources {
     display: grid;
     gap: 18px;

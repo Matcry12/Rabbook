@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 from pathlib import Path
 
@@ -31,6 +32,7 @@ from core.config import (
     get_google_api_key,
 )
 from rag.ingest import add_documents_to_vectorstore
+from rag.notes import delete_note, load_notes, save_note
 from rag.registry import delete_document_from_registry, list_documents, load_chunk_registry
 from rag.retrieve import (
     answer_has_valid_citations,
@@ -124,6 +126,7 @@ def render_home(request: Request, **context):
         "available_files": get_available_files(),
         "available_file_types": get_available_file_types(),
         "library_documents": get_library_documents(),
+        "saved_notes": get_saved_notes(),
         "sources": [],
         "citations": [],
         "debug_mode": False,
@@ -335,6 +338,10 @@ def get_library_documents():
     return list_documents(str(REGISTRY_PATH))
 
 
+def get_saved_notes():
+    return load_notes()
+
+
 def delete_document(document_id):
     document = next(
         (item for item in get_library_documents() if item["document_id"] == document_id),
@@ -375,6 +382,14 @@ async def save_uploaded_document(document: UploadFile, target_path: Path):
 def ingest_uploaded_document(target_path: Path):
     add_documents_to_vectorstore(str(target_path), get_embeddings(), str(DB_DIR))
     refresh_runtime_state()
+
+
+def parse_saved_citations(citations_json):
+    if not citations_json:
+        return []
+
+    citations = json.loads(citations_json)
+    return citations if isinstance(citations, list) else []
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -477,3 +492,35 @@ async def delete_document_route(request: Request, document_id: str):
         request,
         message=f"Deleted {deleted_document['file_name']} from the library.",
     )
+
+
+@app.post("/notes", response_class=HTMLResponse)
+async def save_note_route(request: Request):
+    form = await request.form()
+    query = str(form.get("query", "")).strip()
+    answer = str(form.get("answer", "")).strip()
+    citations_json = str(form.get("citations_json", "")).strip()
+
+    if not query or not answer:
+        return render_home(request, error="Only completed answers can be saved as notes.")
+
+    try:
+        save_note(
+            query=query,
+            answer=answer,
+            citations=parse_saved_citations(citations_json),
+        )
+    except json.JSONDecodeError:
+        return render_home(request, error="Could not save note because citation data was invalid.")
+
+    return render_home(request, message="Saved note.")
+
+
+@app.post("/notes/{note_id}/delete", response_class=HTMLResponse)
+async def delete_note_route(request: Request, note_id: str):
+    try:
+        delete_note(note_id)
+    except ValueError as exc:
+        return render_home(request, error=str(exc))
+
+    return render_home(request, message="Deleted note.")

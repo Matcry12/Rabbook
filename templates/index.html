@@ -96,8 +96,43 @@
         <section class="panel answer-panel">
             <h2>Answer</h2>
             <div class="answer">{{ answer }}</div>
+            <form action="/notes" method="post" class="save-note-form">
+                <input type="hidden" name="query" value="{{ query }}">
+                <input type="hidden" name="answer" value="{{ answer }}">
+                <input type="hidden" name="citations_json" value="{{ citations|tojson|forceescape }}">
+                <button type="submit">Save Note</button>
+            </form>
         </section>
         {% endif %}
+
+        <section class="panel">
+            <h2>Saved Notes</h2>
+            {% if saved_notes %}
+            <div class="library-grid">
+                {% for note in saved_notes %}
+                <article class="library-card">
+                    <div class="library-card__meta">
+                        <p><strong>Saved:</strong> {{ note.saved_at }}</p>
+                        <p><strong>Question:</strong> {{ note.query }}</p>
+                    </div>
+                    <div class="answer">{{ note.answer }}</div>
+                    {% if note.citations %}
+                    <div class="score-row">
+                        {% for item in note.citations %}
+                        <span class="score-pill">[{{ item.number }}] {{ item.source }}{% if item.page is not none %}, p.{{ item.page }}{% endif %}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <form action="/notes/{{ note.note_id }}/delete" method="post">
+                        <button type="submit" class="danger-button">Delete</button>
+                    </form>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>No saved notes yet.</p>
+            {% endif %}
+        </section>
 
         {% if citations %}
         <section class="panel">
