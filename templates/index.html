@@ -7,331 +7,388 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
 </head>
 <body>
-    <main class="page">
-        <section class="hero">
-            <p class="eyebrow">FastAPI + RAG</p>
-            <h1>Rabbook</h1>
-            <p class="subtitle">Ask questions about your documents and add new files without leaving the browser.</p>
-        </section>
+    <header class="topbar">
+        <div class="topbar__brand">
+            <h1 class="topbar__title">Rabbook</h1>
+            <span class="topbar__badge">FastAPI + RAG</span>
+        </div>
+    </header>
 
-        <section class="panel">
-            <h2>Ask a Question</h2>
-            <form action="/ask" method="post" class="stack">
-                <label for="query">Question</label>
-                <textarea id="query" name="query" rows="4" placeholder="What is this roadmap mainly about?">{{ query }}</textarea>
-                <label for="selected_file">Document Filter</label>
-                <select id="selected_file" name="selected_file">
-                    <option value="">All documents</option>
-                    {% for file_name in available_files %}
-                    <option value="{{ file_name }}" {% if selected_file == file_name %}selected{% endif %}>{{ file_name }}</option>
-                    {% endfor %}
-                </select>
-                <label for="selected_file_type">File Type</label>
-                <select id="selected_file_type" name="selected_file_type">
-                    <option value="">All file types</option>
-                    {% for file_type in available_file_types %}
-                    <option value="{{ file_type }}" {% if selected_file_type == file_type %}selected{% endif %}>{{ file_type|upper }}</option>
-                    {% endfor %}
-                </select>
-                <div class="filter-grid">
-                    <div>
-                        <label for="page_start">Start Page</label>
-                        <input id="page_start" name="page_start" type="number" min="1" placeholder="Any" value="{{ page_start }}">
-                    </div>
-                    <div>
-                        <label for="page_end">End Page</label>
-                        <input id="page_end" name="page_end" type="number" min="1" placeholder="Any" value="{{ page_end }}">
-                    </div>
+    {% if message %}
+    <div class="toast toast--success">{{ message }}</div>
+    {% endif %}
+    {% if error %}
+    <div class="toast toast--error">{{ error }}</div>
+    {% endif %}
+
+    <div class="layout">
+        <!-- ─── Sidebar: Sources ─── -->
+        <aside class="sidebar">
+            <div class="sidebar__section">
+                <h2 class="sidebar__heading">Sources</h2>
+                <p class="sidebar__desc">Upload documents or import URLs to build your knowledge base.</p>
+
+                <div class="source-upload-group">
+                    <form action="/documents" method="post" enctype="multipart/form-data" class="upload-form">
+                        <label for="document" class="upload-dropzone">
+                            <span class="upload-dropzone__icon">+</span>
+                            <span class="upload-dropzone__text">Upload PDF or TXT</span>
+                            <input id="document" name="document" type="file" accept=".pdf,.txt" hidden>
+                        </label>
+                        <div class="upload-form__filename" id="filename-display"></div>
+                        <button type="submit" class="btn btn--sm btn--full">Upload</button>
+                    </form>
+
+                    <div class="divider-or"><span>or</span></div>
+
+                    <form action="/urls" method="post" class="url-form">
+                        <input id="url" name="url" type="url" placeholder="https://example.com/article" class="input--compact">
+                        <button type="submit" class="btn btn--sm btn--full">Import URL</button>
+                    </form>
                 </div>
-                <label class="checkbox-row" for="debug_mode">
-                    <input id="debug_mode" name="debug_mode" type="checkbox" {% if debug_mode %}checked{% endif %}>
-                    <span>Show retrieval debug</span>
-                </label>
-                <button type="submit">Get Answer</button>
-            </form>
-        </section>
-
-        <section class="panel">
-            <h2>Add a Document</h2>
-            <form action="/documents" method="post" enctype="multipart/form-data" class="stack">
-                <label for="document">PDF or TXT file</label>
-                <input id="document" name="document" type="file" accept=".pdf,.txt">
-                <button type="submit">Upload Document</button>
-            </form>
-        </section>
-
-        <section class="panel">
-            <h2>Import a URL</h2>
-            <form action="/urls" method="post" class="stack">
-                <label for="url">Single web page</label>
-                <input id="url" name="url" type="url" placeholder="https://example.com/article">
-                <p class="helper-text">Imports one readable HTML page into the library using simple text extraction.</p>
-                <button type="submit">Import URL</button>
-            </form>
-        </section>
-
-        <section class="panel">
-            <h2>Document Library</h2>
-            {% if library_documents %}
-            <div class="library-grid">
-                {% for document in library_documents %}
-                <article class="library-card">
-                    <div class="library-card__meta">
-                        <p><strong>File:</strong> {{ document.file_name }}</p>
-                        <p><strong>Type:</strong> {{ document.file_type|upper }}</p>
-                        <p><strong>Chunks:</strong> {{ document.chunk_count }}</p>
-                        <p><strong>Pages:</strong> {{ document.page_count if document.page_count is not none else 'n/a' }}</p>
-                        <p><strong>Document ID:</strong> {{ document.document_id }}</p>
-                    </div>
-                    <form action="/documents/{{ document.document_id }}/delete" method="post">
-                        <button type="submit" class="danger-button">Delete</button>
-                    </form>
-                </article>
-                {% endfor %}
             </div>
-            {% else %}
-            <p>No documents in the library yet.</p>
-            {% endif %}
-        </section>
 
-        {% if message %}
-        <section class="notice success">{{ message }}</section>
-        {% endif %}
-
-        {% if error %}
-        <section class="notice error">{{ error }}</section>
-        {% endif %}
-
-        {% if answer %}
-        <section class="panel answer-panel">
-            <h2>Answer</h2>
-            <div class="answer">{{ answer }}</div>
-            <form action="/notes" method="post" class="save-note-form">
-                <input type="hidden" name="query" value="{{ query }}">
-                <input type="hidden" name="answer" value="{{ answer }}">
-                <input type="hidden" name="citations_json" value="{{ citations|tojson|forceescape }}">
-                <button type="submit">Save Note</button>
-            </form>
-        </section>
-        {% endif %}
-
-        <section class="panel">
-            <h2>Chat History</h2>
-            {% if history_items %}
-            <div class="library-grid">
-                {% for item in history_items %}
-                <article class="library-card">
-                    <div class="library-card__meta">
-                        <p><strong>Asked:</strong> {{ item.created_at }}</p>
-                        <p><strong>Question:</strong> {{ item.query }}</p>
-                        {% if item.selected_file or item.selected_file_type or item.page_start or item.page_end %}
-                        <p><strong>Filters:</strong>
-                            file={{ item.selected_file if item.selected_file else 'all' }},
-                            type={{ item.selected_file_type if item.selected_file_type else 'all' }},
-                            pages={{ item.page_start if item.page_start else 'start' }}-{{ item.page_end if item.page_end else 'end' }}
-                        </p>
-                        {% endif %}
-                    </div>
-                    <div class="answer">{{ item.answer }}</div>
-                    {% if item.citations %}
-                    <div class="score-row">
-                        {% for citation in item.citations %}
-                        <span class="score-pill">[{{ citation.number }}] {{ citation.source }}{% if citation.page is not none %}, p.{{ citation.page }}{% endif %}</span>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                    <div class="action-row">
-                        <form action="/history/{{ item.history_id }}/notes" method="post">
-                            <button type="submit">Save To Notes</button>
-                        </form>
-                        <form action="/history/{{ item.history_id }}/delete" method="post">
-                            <button type="submit" class="danger-button">Delete</button>
+            <div class="sidebar__section">
+                <h2 class="sidebar__heading">Document Library
+                    {% if library_documents %}<span class="count-badge">{{ library_documents|length }}</span>{% endif %}
+                </h2>
+                {% if library_documents %}
+                <div class="doc-list">
+                    {% for document in library_documents %}
+                    <div class="doc-item">
+                        <div class="doc-item__icon">
+                            {% if document.file_type == 'pdf' %}
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+                            {% elif document.file_type == 'txt' %}
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            {% else %}
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                            {% endif %}
+                        </div>
+                        <div class="doc-item__info">
+                            <p class="doc-item__name">{{ document.file_name }}</p>
+                            <p class="doc-item__meta">{{ document.file_type|upper }} &middot; {{ document.chunk_count }} chunks{% if document.page_count is not none %} &middot; {{ document.page_count }} pg{% endif %}</p>
+                        </div>
+                        <form action="/documents/{{ document.document_id }}/delete" method="post" class="doc-item__delete">
+                            <button type="submit" class="btn-icon btn-icon--danger" title="Delete document">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                            </button>
                         </form>
                     </div>
-                </article>
-                {% endfor %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="empty-state">No sources added yet. Upload a file or import a URL to get started.</p>
+                {% endif %}
             </div>
-            {% else %}
-            <p>No chat history yet.</p>
-            {% endif %}
-        </section>
+        </aside>
 
-        <section class="panel">
-            <h2>Saved Notes</h2>
-            {% if saved_notes %}
-            <div class="library-grid">
-                {% for note in saved_notes %}
-                <article class="library-card">
-                    <div class="library-card__meta">
-                        <p><strong>Saved:</strong> {{ note.saved_at }}</p>
-                        <p><strong>Question:</strong> {{ note.query }}</p>
+        <!-- ─── Main: Chat ─── -->
+        <main class="main">
+            <div class="main__inner">
+                <!-- Ask -->
+                <section class="panel">
+                    <h2 class="panel__heading">Ask a Question</h2>
+                    <form action="/ask" method="post" class="ask-form">
+                        <div class="ask-form__input-row">
+                            <textarea id="query" name="query" rows="3" placeholder="What is this roadmap mainly about?" class="ask-textarea">{{ query }}</textarea>
+                            <button type="submit" class="btn btn--submit" title="Get Answer">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+                            </button>
+                        </div>
+                        <details class="filter-details">
+                            <summary class="filter-summary">Filters &amp; Options</summary>
+                            <div class="filter-body">
+                                <div class="filter-row">
+                                    <div class="filter-field">
+                                        <label for="selected_file">Document</label>
+                                        <select id="selected_file" name="selected_file">
+                                            <option value="">All documents</option>
+                                            {% for file_name in available_files %}
+                                            <option value="{{ file_name }}" {% if selected_file == file_name %}selected{% endif %}>{{ file_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="filter-field">
+                                        <label for="selected_file_type">File Type</label>
+                                        <select id="selected_file_type" name="selected_file_type">
+                                            <option value="">All types</option>
+                                            {% for file_type in available_file_types %}
+                                            <option value="{{ file_type }}" {% if selected_file_type == file_type %}selected{% endif %}>{{ file_type|upper }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="filter-field">
+                                        <label for="page_start">Start Page</label>
+                                        <input id="page_start" name="page_start" type="number" min="1" placeholder="Any" value="{{ page_start }}">
+                                    </div>
+                                    <div class="filter-field">
+                                        <label for="page_end">End Page</label>
+                                        <input id="page_end" name="page_end" type="number" min="1" placeholder="Any" value="{{ page_end }}">
+                                    </div>
+                                </div>
+                                <label class="checkbox-row" for="debug_mode">
+                                    <input id="debug_mode" name="debug_mode" type="checkbox" {% if debug_mode %}checked{% endif %}>
+                                    <span>Show retrieval debug info</span>
+                                </label>
+                            </div>
+                        </details>
+                    </form>
+                </section>
+
+                <!-- Answer -->
+                {% if answer %}
+                <section class="panel answer-panel">
+                    <h2 class="panel__heading">Answer</h2>
+                    <div class="answer-body">{{ answer }}</div>
+                    <div class="answer-actions">
+                        <form action="/notes" method="post">
+                            <input type="hidden" name="query" value="{{ query }}">
+                            <input type="hidden" name="answer" value="{{ answer }}">
+                            <input type="hidden" name="citations_json" value="{{ citations|tojson|forceescape }}">
+                            <button type="submit" class="btn btn--outline btn--sm">Save Note</button>
+                        </form>
                     </div>
-                    <div class="answer">{{ note.answer }}</div>
-                    {% if note.citations %}
-                    <div class="score-row">
-                        {% for item in note.citations %}
-                        <span class="score-pill">[{{ item.number }}] {{ item.source }}{% if item.page is not none %}, p.{{ item.page }}{% endif %}</span>
+                </section>
+                {% endif %}
+
+                <!-- Cited Sources -->
+                {% if citations %}
+                <section class="panel">
+                    <h2 class="panel__heading">Cited Sources</h2>
+                    <div class="sources-grid">
+                        {% for item in citations %}
+                        <article class="source-card">
+                            <div class="source-card__header">
+                                <span class="source-card__num">[{{ item.number }}]</span>
+                                <span class="source-card__file">{{ item.source }}</span>
+                                {% if item.page is not none %}<span class="source-card__page">p.{{ item.page }}</span>{% endif %}
+                            </div>
+                            <div class="score-row">
+                                <span class="score-pill">Retrieval: {{ item.retrieval_score }}</span>
+                                <span class="score-pill">Rerank: {{ item.rerank_score }}</span>
+                            </div>
+                            <pre class="chunk-content">{{ item.content }}</pre>
+                        </article>
                         {% endfor %}
                     </div>
+                </section>
+                {% endif %}
+
+                <!-- Retrieved Chunks -->
+                {% if sources %}
+                <section class="panel">
+                    <h2 class="panel__heading">Retrieved Chunks</h2>
+                    <div class="sources-grid">
+                        {% for item in sources %}
+                        <article class="source-card">
+                            <div class="source-card__header">
+                                <span class="source-card__file">{{ item.source }}</span>
+                                {% if item.page is not none %}<span class="source-card__page">p.{{ item.page }}</span>{% endif %}
+                            </div>
+                            <div class="score-row">
+                                <span class="score-pill">Retrieval: {{ item.retrieval_score }}</span>
+                                <span class="score-pill">Rerank: {{ item.rerank_score }}</span>
+                            </div>
+                            <pre class="chunk-content">{{ item.content }}</pre>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+                <!-- Chat History -->
+                <section class="panel">
+                    <h2 class="panel__heading">Chat History
+                        {% if history_items %}<span class="count-badge">{{ history_items|length }}</span>{% endif %}
+                    </h2>
+                    {% if history_items %}
+                    <div class="history-list">
+                        {% for item in history_items %}
+                        <article class="history-item">
+                            <div class="history-item__q">
+                                <span class="history-item__time">{{ item.created_at }}</span>
+                                <p class="history-item__query">{{ item.query }}</p>
+                                {% if item.selected_file or item.selected_file_type or item.page_start or item.page_end %}
+                                <p class="history-item__filters">
+                                    file={{ item.selected_file if item.selected_file else 'all' }},
+                                    type={{ item.selected_file_type if item.selected_file_type else 'all' }},
+                                    pages={{ item.page_start if item.page_start else 'start' }}-{{ item.page_end if item.page_end else 'end' }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div class="history-item__a">{{ item.answer }}</div>
+                            {% if item.citations %}
+                            <div class="score-row">
+                                {% for citation in item.citations %}
+                                <span class="score-pill">[{{ citation.number }}] {{ citation.source }}{% if citation.page is not none %}, p.{{ citation.page }}{% endif %}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="action-row">
+                                <form action="/history/{{ item.history_id }}/notes" method="post">
+                                    <button type="submit" class="btn btn--outline btn--sm">Save To Notes</button>
+                                </form>
+                                <form action="/history/{{ item.history_id }}/delete" method="post">
+                                    <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+                                </form>
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="empty-state">No chat history yet. Ask a question to get started.</p>
                     {% endif %}
-                    <form action="/notes/{{ note.note_id }}/delete" method="post">
-                        <button type="submit" class="danger-button">Delete</button>
-                    </form>
-                </article>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p>No saved notes yet.</p>
-            {% endif %}
-        </section>
+                </section>
 
-        {% if citations %}
-        <section class="panel">
-            <h2>Cited Sources In Answer</h2>
-            <div class="sources">
-                {% for item in citations %}
-                <article class="source-card">
-                    <div class="source-header">
-                        <p class="source-meta"><strong>Citation:</strong> [{{ item.number }}]</p>
-                        <p class="source-meta"><strong>Source:</strong> {{ item.source }}</p>
-                        <p class="source-meta"><strong>Page:</strong> {{ item.page if item.page is not none else 'n/a' }}</p>
-                        <p class="source-meta"><strong>Chunk ID:</strong> {{ item.chunk_id }}</p>
+                <!-- Saved Notes -->
+                <section class="panel">
+                    <h2 class="panel__heading">Saved Notes
+                        {% if saved_notes %}<span class="count-badge">{{ saved_notes|length }}</span>{% endif %}
+                    </h2>
+                    {% if saved_notes %}
+                    <div class="history-list">
+                        {% for note in saved_notes %}
+                        <article class="history-item">
+                            <div class="history-item__q">
+                                <span class="history-item__time">{{ note.saved_at }}</span>
+                                <p class="history-item__query">{{ note.query }}</p>
+                            </div>
+                            <div class="history-item__a">{{ note.answer }}</div>
+                            {% if note.citations %}
+                            <div class="score-row">
+                                {% for item in note.citations %}
+                                <span class="score-pill">[{{ item.number }}] {{ item.source }}{% if item.page is not none %}, p.{{ item.page }}{% endif %}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="action-row">
+                                <form action="/notes/{{ note.note_id }}/delete" method="post">
+                                    <button type="submit" class="btn btn--danger btn--sm">Delete</button>
+                                </form>
+                            </div>
+                        </article>
+                        {% endfor %}
                     </div>
-                    <div class="score-row">
-                        <span class="score-pill">Raw retrieval: {{ item.retrieval_score }}</span>
-                        <span class="score-pill">Rerank: {{ item.rerank_score }}</span>
+                    {% else %}
+                    <p class="empty-state">No saved notes yet.</p>
+                    {% endif %}
+                </section>
+
+                <!-- Debug -->
+                {% if debug_data %}
+                <section class="panel">
+                    <h2 class="panel__heading">Debug Retrieval Flow</h2>
+
+                    <div class="debug-summary">
+                        <div class="debug-pill">Queries: {{ debug_data.stage_counts.search_queries }}</div>
+                        <div class="debug-pill">Dense Hits: {{ debug_data.dense_total_hits }}</div>
+                        <div class="debug-pill">BM25 Hits: {{ debug_data.bm25_total_hits }}</div>
+                        <div class="debug-pill">Fused: {{ debug_data.stage_counts.fused_candidates }}</div>
+                        <div class="debug-pill">Top Hits: {{ debug_data.stage_counts.final_hits }}</div>
+                        <div class="debug-pill">Expanded Context: {{ debug_data.stage_counts.expanded_context }}</div>
                     </div>
-                    <pre class="chunk-content">{{ item.content }}</pre>
-                </article>
-                {% endfor %}
-            </div>
-        </section>
-        {% endif %}
 
-        {% if sources %}
-        <section class="panel">
-            <h2>Retrieved Chunks</h2>
-            <div class="sources">
-                {% for item in sources %}
-                <article class="source-card">
-                    <div class="source-header">
-                        <p class="source-meta"><strong>Source:</strong> {{ item.source }}</p>
-                        <p class="source-meta"><strong>Page:</strong> {{ item.page if item.page is not none else 'n/a' }}</p>
-                        <p class="source-meta"><strong>Chunk ID:</strong> {{ item.chunk_id }}</p>
+                    {% if debug_data.grounding %}
+                    <div class="debug-block">
+                        <h3>Grounding Status</h3>
+                        <ul class="debug-list">
+                            <li><strong>Metadata Filter:</strong>
+                                {% if debug_data.metadata_filter %}
+                                file={{ debug_data.metadata_filter.file_name if debug_data.metadata_filter.file_name else 'all' }},
+                                type={{ debug_data.metadata_filter.file_type if debug_data.metadata_filter.file_type else 'all' }},
+                                pages=
+                                {% if debug_data.metadata_filter.page_range %}
+                                {{ debug_data.metadata_filter.page_range.start if debug_data.metadata_filter.page_range.start is not none else 'start' }}-{{ debug_data.metadata_filter.page_range.end if debug_data.metadata_filter.page_range.end is not none else 'end' }}
+                                {% else %}all{% endif %}
+                                {% else %}All documents{% endif %}
+                            </li>
+                            <li><strong>Result:</strong> {{ 'PASS' if debug_data.grounding.passed else 'FAIL' }}</li>
+                            <li><strong>Failed At:</strong> {{ debug_data.grounding.stage }}</li>
+                            <li><strong>Reason:</strong> {{ debug_data.grounding.reason }}</li>
+                            <li><strong>Top Rerank Score:</strong> {{ debug_data.grounding.top_rerank_score if debug_data.grounding.top_rerank_score is not none else 'n/a' }}</li>
+                            <li><strong>Retrieved Chunks:</strong> {{ debug_data.grounding.retrieved_count if debug_data.grounding.retrieved_count is not none else 'n/a' }}</li>
+                            <li><strong>Expanded Chunks:</strong> {{ debug_data.grounding.expanded_count if debug_data.grounding.expanded_count is not none else 'n/a' }}</li>
+                        </ul>
                     </div>
-                    <div class="score-row">
-                        <span class="score-pill">Raw retrieval: {{ item.retrieval_score }}</span>
-                        <span class="score-pill">Rerank: {{ item.rerank_score }}</span>
+                    {% endif %}
+
+                    <div class="debug-block">
+                        <h3>Search Queries</h3>
+                        <ul class="debug-list">
+                            {% for query_item in debug_data.search_queries %}
+                            <li>{{ query_item }}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
-                    <pre class="chunk-content">{{ item.content }}</pre>
-                </article>
-                {% endfor %}
-            </div>
-        </section>
-        {% endif %}
 
-        {% if debug_data %}
-        <section class="panel">
-            <h2>Debug Retrieval Flow</h2>
+                    <div class="debug-block">
+                        <h3>Dense Hits</h3>
+                        {% for query_item, hits in debug_data.dense_hits.items() %}
+                        <h4>{{ query_item }}</h4>
+                        <ul class="debug-list">
+                            {% for hit in hits %}
+                            <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endfor %}
+                    </div>
 
-            <div class="debug-summary">
-                <div class="debug-pill">Queries: {{ debug_data.stage_counts.search_queries }}</div>
-                <div class="debug-pill">Dense Hits: {{ debug_data.dense_total_hits }}</div>
-                <div class="debug-pill">BM25 Hits: {{ debug_data.bm25_total_hits }}</div>
-                <div class="debug-pill">Fused: {{ debug_data.stage_counts.fused_candidates }}</div>
-                <div class="debug-pill">Top Hits: {{ debug_data.stage_counts.final_hits }}</div>
-                <div class="debug-pill">Expanded Context: {{ debug_data.stage_counts.expanded_context }}</div>
-            </div>
+                    <div class="debug-block">
+                        <h3>BM25 Hits</h3>
+                        {% for query_item, hits in debug_data.bm25_hits.items() %}
+                        <h4>{{ query_item }}</h4>
+                        <ul class="debug-list">
+                            {% for hit in hits %}
+                            <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endfor %}
+                    </div>
 
-            {% if debug_data.grounding %}
-            <div class="debug-block">
-                <h3>Grounding Status</h3>
-                <ul class="debug-list">
-                    <li><strong>Metadata Filter:</strong>
-                        {% if debug_data.metadata_filter %}
-                        file={{ debug_data.metadata_filter.file_name if debug_data.metadata_filter.file_name else 'all' }},
-                        type={{ debug_data.metadata_filter.file_type if debug_data.metadata_filter.file_type else 'all' }},
-                        pages=
-                        {% if debug_data.metadata_filter.page_range %}
-                        {{ debug_data.metadata_filter.page_range.start if debug_data.metadata_filter.page_range.start is not none else 'start' }}-{{ debug_data.metadata_filter.page_range.end if debug_data.metadata_filter.page_range.end is not none else 'end' }}
-                        {% else %}
-                        all
-                        {% endif %}
-                        {% else %}
-                        All documents
-                        {% endif %}
-                    </li>
-                    <li><strong>Result:</strong> {{ 'PASS' if debug_data.grounding.passed else 'FAIL' }}</li>
-                    <li><strong>Failed At:</strong> {{ debug_data.grounding.stage }}</li>
-                    <li><strong>Reason:</strong> {{ debug_data.grounding.reason }}</li>
-                    <li><strong>Top Rerank Score:</strong> {{ debug_data.grounding.top_rerank_score if debug_data.grounding.top_rerank_score is not none else 'n/a' }}</li>
-                    <li><strong>Retrieved Chunks:</strong> {{ debug_data.grounding.retrieved_count if debug_data.grounding.retrieved_count is not none else 'n/a' }}</li>
-                    <li><strong>Expanded Chunks:</strong> {{ debug_data.grounding.expanded_count if debug_data.grounding.expanded_count is not none else 'n/a' }}</li>
-                </ul>
-            </div>
-            {% endif %}
+                    <div class="debug-block">
+                        <h3>Fused Candidates</h3>
+                        <ul class="debug-list">
+                            {% for hit in debug_data.fused_hits %}
+                            <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
 
-            <div class="debug-block">
-                <h3>Search Queries</h3>
-                <ul class="debug-list">
-                    {% for query_item in debug_data.search_queries %}
-                    <li>{{ query_item }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
+                    <div class="debug-block">
+                        <h3>Final Reranked Hits</h3>
+                        <ul class="debug-list">
+                            {% for hit in debug_data.reranked_hits %}
+                            <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
 
-            <div class="debug-block">
-                <h3>Dense Hits</h3>
-                {% for query_item, hits in debug_data.dense_hits.items() %}
-                <h4>{{ query_item }}</h4>
-                <ul class="debug-list">
-                    {% for hit in hits %}
-                    <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
-                    {% endfor %}
-                </ul>
-                {% endfor %}
+                    <div class="debug-block">
+                        <h3>Expanded Context Sent To LLM</h3>
+                        <ul class="debug-list">
+                            {% for hit in debug_data.expanded_hits %}
+                            <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
             </div>
+        </main>
+    </div>
 
-            <div class="debug-block">
-                <h3>BM25 Hits</h3>
-                {% for query_item, hits in debug_data.bm25_hits.items() %}
-                <h4>{{ query_item }}</h4>
-                <ul class="debug-list">
-                    {% for hit in hits %}
-                    <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
-                    {% endfor %}
-                </ul>
-                {% endfor %}
-            </div>
+    <script>
+        // Show selected filename in upload area
+        document.getElementById('document').addEventListener('change', function() {
+            var display = document.getElementById('filename-display');
+            display.textContent = this.files.length ? this.files[0].name : '';
+        });
 
-            <div class="debug-block">
-                <h3>Fused Candidates</h3>
-                <ul class="debug-list">
-                    {% for hit in debug_data.fused_hits %}
-                    <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <div class="debug-block">
-                <h3>Final Reranked Hits</h3>
-                <ul class="debug-list">
-                    {% for hit in debug_data.reranked_hits %}
-                    <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <div class="debug-block">
-                <h3>Expanded Context Sent To LLM</h3>
-                <ul class="debug-list">
-                    {% for hit in debug_data.expanded_hits %}
-                    <li><strong>{{ hit.chunk_id }}</strong> | {{ hit.source }} | page {{ hit.page if hit.page is not none else 'n/a' }} | {{ hit.score }}<br>{{ hit.preview }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </section>
-        {% endif %}
-    </main>
+        // Auto-dismiss toast notifications
+        document.querySelectorAll('.toast').forEach(function(toast) {
+            setTimeout(function() { toast.classList.add('toast--hide'); }, 4000);
+        });
+    </script>
 </body>
 </html>
