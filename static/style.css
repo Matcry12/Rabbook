@@ -96,6 +96,7 @@ label {
 
 textarea,
 input[type="file"],
+input[type="url"],
 input[type="number"],
 select {
     width: 100%;
@@ -157,6 +158,13 @@ button:hover {
 
 .save-note-form {
     margin-top: 16px;
+}
+
+.helper-text {
+    margin: -4px 0 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .sources {

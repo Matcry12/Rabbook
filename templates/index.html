@@ -61,6 +61,16 @@
         </section>
 
         <section class="panel">
+            <h2>Import a URL</h2>
+            <form action="/urls" method="post" class="stack">
+                <label for="url">Single web page</label>
+                <input id="url" name="url" type="url" placeholder="https://example.com/article">
+                <p class="helper-text">Imports one readable HTML page into the library using simple text extraction.</p>
+                <button type="submit">Import URL</button>
+            </form>
+        </section>
+
+        <section class="panel">
             <h2>Document Library</h2>
             {% if library_documents %}
             <div class="library-grid">

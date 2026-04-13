@@ -19,13 +19,19 @@ def enrich_document_metadata(documents):
 
     for doc in documents:
         source = str(doc.metadata.get("source", "")).strip()
+        existing_file_name = str(doc.metadata.get("file_name", "")).strip()
+        existing_file_type = str(doc.metadata.get("file_type", "")).strip()
         path = Path(source) if source else None
         page = doc.metadata.get("page")
 
         doc.metadata["source"] = source or "unknown"
-        doc.metadata["file_name"] = path.name if path else "unknown"
-        doc.metadata["file_type"] = path.suffix.lower().lstrip(".") if path else "unknown"
-        doc.metadata["document_id"] = build_document_id(source or doc.metadata["file_name"])
+        doc.metadata["file_name"] = existing_file_name or (path.name if path else "unknown")
+        doc.metadata["file_type"] = existing_file_type or (
+            path.suffix.lower().lstrip(".") if path else "unknown"
+        )
+        doc.metadata["document_id"] = build_document_id(
+            source or doc.metadata.get("source_url", "") or doc.metadata["file_name"]
+        )
         doc.metadata["page"] = page if page is not None else None
 
         enriched.append(doc)

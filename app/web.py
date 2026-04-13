@@ -3,7 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, Request, UploadFile
+from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -31,7 +31,7 @@ from core.config import (
     UPLOAD_DIR,
     get_google_api_key,
 )
-from rag.ingest import add_documents_to_vectorstore
+from rag.ingest import add_documents_to_vectorstore, add_loaded_documents_to_vectorstore
 from rag.notes import delete_note, load_notes, save_note
 from rag.registry import delete_document_from_registry, list_documents, load_chunk_registry
 from rag.retrieve import (
@@ -49,6 +49,7 @@ from rag.retrieve import (
     load_vectorstore,
     retrieve_documents_with_query_transform,
 )
+from rag.web_ingest import load_url_document
 
 
 app = FastAPI(title="Rabbook")
@@ -384,6 +385,13 @@ def ingest_uploaded_document(target_path: Path):
     refresh_runtime_state()
 
 
+def ingest_url_document(url: str):
+    document = load_url_document(url)
+    add_loaded_documents_to_vectorstore([document], get_embeddings(), str(DB_DIR))
+    refresh_runtime_state()
+    return document
+
+
 def parse_saved_citations(citations_json):
     if not citations_json:
         return []
@@ -477,6 +485,23 @@ async def upload_document(request: Request, document: UploadFile = File(...)):
         return render_home(request, error=str(exc))
 
     return render_home(request, message=f"Added {filename} to the vector store.")
+
+
+@app.post("/urls", response_class=HTMLResponse)
+async def import_url(request: Request, url: str = Form(...)):
+    target_url = url.strip()
+    if not target_url:
+        return render_home(request, error="Please enter a URL to import.")
+
+    try:
+        document = ingest_url_document(target_url)
+    except ValueError as exc:
+        return render_home(request, error=str(exc))
+    except Exception as exc:
+        return render_home(request, error=str(exc))
+
+    title = document.metadata.get("title") or document.metadata.get("file_name", "URL page")
+    return render_home(request, message=f"Imported {title} from URL.")
 
 
 @app.post("/documents/{document_id}/delete", response_class=HTMLResponse)

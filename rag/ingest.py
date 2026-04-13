@@ -51,6 +51,14 @@ def add_documents_to_vectorstore(data_dir, embeddings, persist_dir):
     """
 
     documents = load_documents(data_dir)
+    return add_loaded_documents_to_vectorstore(documents, embeddings, persist_dir)
+
+
+def add_loaded_documents_to_vectorstore(documents, embeddings, persist_dir):
+    """
+    Add already-loaded documents into the existing Chroma vector store.
+    """
+
     enriched_chunks = prepare_chunks(documents, embeddings)
 
     if not enriched_chunks:

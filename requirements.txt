@@ -1,3 +1,4 @@
+beautifulsoup4
 fastapi
 jinja2
 langchain-chroma
@@ -10,5 +11,6 @@ pypdf
 python-dotenv
 python-multipart
 rank-bm25
+requests
 sentence-transformers
 uvicorn
