@@ -1,15 +1,15 @@
+import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
-from langchain_core.documents import Document
 
 
-def load_url_document(url: str, timeout: int = 15) -> Document:
+def fetch_url_content(url: str, timeout: int = 15) -> dict:
     """
-    Fetch a single URL and convert the readable page text into one Document.
+    Fetch a single URL and return extracted content plus metadata.
     """
 
     parsed_url = urlparse(url)
@@ -32,20 +32,40 @@ def load_url_document(url: str, timeout: int = 15) -> Document:
         raise ValueError("Could not extract enough readable text from this URL.")
 
     title_slug = slugify_text(title or parsed_url.netloc)
-    file_name = f"url-{title_slug}.txt"
+    url_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()[:8]
+    file_name = f"url-{title_slug}-{url_hash}.txt"
 
-    return Document(
-        page_content=page_text,
-        metadata={
-            "source": url,
-            "source_url": url,
-            "title": title,
-            "domain": parsed_url.netloc,
-            "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "file_name": file_name,
-            "file_type": "html",
-        },
-    )
+    return {
+        "page_text": page_text,
+        "source_url": url,
+        "title": title,
+        "domain": parsed_url.netloc,
+        "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "file_name": file_name,
+    }
+
+
+def save_url_import(payload: dict, target_dir: Path) -> Path:
+    """
+    Persist the extracted URL content as a text file so it can be re-ingested later.
+    """
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+    file_path = target_dir / payload["file_name"]
+    file_path.write_text(build_url_import_text(payload), encoding="utf-8")
+    return file_path
+
+
+def build_url_import_text(payload: dict) -> str:
+    lines = [
+        f"Title: {payload.get('title') or 'Untitled page'}",
+        f"Source URL: {payload.get('source_url', '')}",
+        f"Domain: {payload.get('domain', '')}",
+        f"Fetched At: {payload.get('fetched_at', '')}",
+        "",
+        payload.get("page_text", ""),
+    ]
+    return "\n".join(lines).strip() + "\n"
 
 
 def extract_page_text(html: str) -> tuple[str, str]:

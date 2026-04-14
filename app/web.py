@@ -29,11 +29,11 @@ from core.config import (
     SUPPORTED_EXTENSIONS,
     TEMPLATES_DIR,
     UPLOAD_DIR,
+    URL_IMPORT_DIR,
     get_google_api_key,
 )
 from rag.ingest import (
     add_documents_to_vectorstore,
-    add_loaded_documents_to_vectorstore,
     reingest_directory,
 )
 from rag.exporters import (
@@ -71,7 +71,7 @@ from rag.retrieve import (
     load_vectorstore,
     retrieve_documents_with_query_transform,
 )
-from rag.web_ingest import load_url_document
+from rag.web_ingest import fetch_url_content, save_url_import
 
 
 app = FastAPI(title="Rabbook")
@@ -413,10 +413,10 @@ def ingest_uploaded_document(target_path: Path):
 
 
 def ingest_url_document(url: str):
-    document = load_url_document(url)
-    add_loaded_documents_to_vectorstore([document], get_embeddings(), str(DB_DIR))
-    refresh_runtime_state()
-    return document
+    payload = fetch_url_content(url)
+    saved_path = save_url_import(payload, URL_IMPORT_DIR)
+    ingest_uploaded_document(saved_path)
+    return payload
 
 
 def parse_saved_citations(citations_json):
@@ -559,13 +559,13 @@ async def import_url(request: Request, url: str = Form(...)):
         return render_home(request, error="Please enter a URL to import.")
 
     try:
-        document = ingest_url_document(target_url)
+        payload = ingest_url_document(target_url)
     except ValueError as exc:
         return render_home(request, error=str(exc))
     except Exception as exc:
         return render_home(request, error=str(exc))
 
-    title = document.metadata.get("title") or document.metadata.get("file_name", "URL page")
+    title = payload.get("title") or payload.get("file_name", "URL page")
     return render_home(request, message=f"Imported {title} from URL.")
 
 

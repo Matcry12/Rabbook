@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 UPLOAD_DIR = DATA_DIR / "uploads"
+URL_IMPORT_DIR = UPLOAD_DIR / "urls"
 DB_DIR = BASE_DIR / "chroma_db"
 REGISTRY_PATH = BASE_DIR / "chunk_registry.json"
 NOTES_PATH = BASE_DIR / "notes.json"
@@ -46,6 +47,7 @@ DEFAULT_RERANK_MODEL = os.getenv(
 )
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+URL_IMPORT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_google_api_key() -> str | None:
