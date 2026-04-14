@@ -4,7 +4,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -32,6 +32,12 @@ from core.config import (
     get_google_api_key,
 )
 from rag.ingest import add_documents_to_vectorstore, add_loaded_documents_to_vectorstore
+from rag.exporters import (
+    export_answer_as_markdown,
+    export_history_as_markdown,
+    export_notes_as_markdown,
+    export_records_as_json,
+)
 from rag.history import (
     delete_history_entry,
     get_history_entry,
@@ -411,6 +417,14 @@ def parse_saved_citations(citations_json):
     return citations if isinstance(citations, list) else []
 
 
+def build_download_response(content, filename, media_type):
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 def save_history_item(
     query,
     answer,
@@ -592,6 +606,24 @@ async def delete_note_route(request: Request, note_id: str):
     return render_home(request, message="Deleted note.")
 
 
+@app.get("/export/notes.md")
+async def export_notes_markdown():
+    return build_download_response(
+        export_notes_as_markdown(get_saved_notes()),
+        "rabbook_notes.md",
+        "text/markdown; charset=utf-8",
+    )
+
+
+@app.get("/export/notes.json")
+async def export_notes_json():
+    return build_download_response(
+        export_records_as_json(get_saved_notes()),
+        "rabbook_notes.json",
+        "application/json; charset=utf-8",
+    )
+
+
 @app.post("/history/{history_id}/delete", response_class=HTMLResponse)
 async def delete_history_route(request: Request, history_id: str):
     try:
@@ -615,3 +647,56 @@ async def save_history_to_notes_route(request: Request, history_id: str):
         return render_home(request, error=str(exc))
 
     return render_home(request, message="Saved history item as note.")
+
+
+@app.get("/export/history.md")
+async def export_history_markdown():
+    return build_download_response(
+        export_history_as_markdown(get_history_items()),
+        "rabbook_history.md",
+        "text/markdown; charset=utf-8",
+    )
+
+
+@app.get("/export/history.json")
+async def export_history_json():
+    return build_download_response(
+        export_records_as_json(get_history_items()),
+        "rabbook_history.json",
+        "application/json; charset=utf-8",
+    )
+
+
+@app.post("/export/answer.md")
+async def export_answer_markdown(
+    query: str = Form(...),
+    answer: str = Form(...),
+    citations_json: str = Form(""),
+):
+    return build_download_response(
+        export_answer_as_markdown(
+            query=query.strip(),
+            answer=answer.strip(),
+            citations=parse_saved_citations(citations_json.strip()),
+        ),
+        "rabbook_answer.md",
+        "text/markdown; charset=utf-8",
+    )
+
+
+@app.post("/export/answer.json")
+async def export_answer_json(
+    query: str = Form(...),
+    answer: str = Form(...),
+    citations_json: str = Form(""),
+):
+    payload = {
+        "query": query.strip(),
+        "answer": answer.strip(),
+        "citations": parse_saved_citations(citations_json.strip()),
+    }
+    return build_download_response(
+        export_records_as_json(payload),
+        "rabbook_answer.json",
+        "application/json; charset=utf-8",
+    )

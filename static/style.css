@@ -514,6 +514,7 @@ body {
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
     cursor: pointer;
     transition: filter var(--transition), transform var(--transition), box-shadow var(--transition);
+    text-decoration: none;
 }
 
 .btn:hover {
@@ -707,6 +708,12 @@ body {
     gap: 8px;
     padding-top: 10px;
     border-top: 1px solid rgba(125, 49, 23, 0.08);
+}
+
+.section-actions {
+    margin-bottom: 14px;
+    padding-top: 0;
+    border-top: 0;
 }
 
 /* ── Toast Notifications ── */

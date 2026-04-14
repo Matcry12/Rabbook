@@ -148,6 +148,18 @@
                             <input type="hidden" name="citations_json" value="{{ citations|tojson|forceescape }}">
                             <button type="submit" class="btn btn--outline btn--sm">Save Note</button>
                         </form>
+                        <form action="/export/answer.md" method="post">
+                            <input type="hidden" name="query" value="{{ query }}">
+                            <input type="hidden" name="answer" value="{{ answer }}">
+                            <input type="hidden" name="citations_json" value="{{ citations|tojson|forceescape }}">
+                            <button type="submit" class="btn btn--outline btn--sm">Export Markdown</button>
+                        </form>
+                        <form action="/export/answer.json" method="post">
+                            <input type="hidden" name="query" value="{{ query }}">
+                            <input type="hidden" name="answer" value="{{ answer }}">
+                            <input type="hidden" name="citations_json" value="{{ citations|tojson|forceescape }}">
+                            <button type="submit" class="btn btn--outline btn--sm">Export JSON</button>
+                        </form>
                     </div>
                 </section>
                 {% endif %}
@@ -202,6 +214,10 @@
                     <h2 class="panel__heading">Chat History
                         {% if history_items %}<span class="count-badge">{{ history_items|length }}</span>{% endif %}
                     </h2>
+                    <div class="action-row section-actions">
+                        <a class="btn btn--outline btn--sm" href="/export/history.md">Export Markdown</a>
+                        <a class="btn btn--outline btn--sm" href="/export/history.json">Export JSON</a>
+                    </div>
                     {% if history_items %}
                     <div class="history-list">
                         {% for item in history_items %}
@@ -246,6 +262,10 @@
                     <h2 class="panel__heading">Saved Notes
                         {% if saved_notes %}<span class="count-badge">{{ saved_notes|length }}</span>{% endif %}
                     </h2>
+                    <div class="action-row section-actions">
+                        <a class="btn btn--outline btn--sm" href="/export/notes.md">Export Markdown</a>
+                        <a class="btn btn--outline btn--sm" href="/export/notes.json">Export JSON</a>
+                    </div>
                     {% if saved_notes %}
                     <div class="history-list">
                         {% for note in saved_notes %}
