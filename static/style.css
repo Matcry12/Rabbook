@@ -127,6 +127,11 @@ body {
     gap: 10px;
 }
 
+.action-stack {
+    display: grid;
+    gap: 8px;
+}
+
 .upload-dropzone {
     display: flex;
     flex-direction: column;

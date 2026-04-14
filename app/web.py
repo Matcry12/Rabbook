@@ -39,12 +39,13 @@ from rag.exporters import (
     export_records_as_json,
 )
 from rag.history import (
+    clear_history,
     delete_history_entry,
     get_history_entry,
     load_history,
     save_history_entry,
 )
-from rag.notes import delete_note, load_notes, save_note
+from rag.notes import clear_notes, delete_note, load_notes, save_note
 from rag.registry import delete_document_from_registry, list_documents, load_chunk_registry
 from rag.retrieve import (
     answer_has_valid_citations,
@@ -700,3 +701,25 @@ async def export_answer_json(
         "rabbook_answer.json",
         "application/json; charset=utf-8",
     )
+
+
+@app.post("/maintenance/refresh", response_class=HTMLResponse)
+async def refresh_runtime_route(request: Request):
+    try:
+        refresh_runtime_state()
+    except Exception as exc:
+        return render_home(request, error=str(exc))
+
+    return render_home(request, message="Refreshed runtime state.")
+
+
+@app.post("/maintenance/history/clear", response_class=HTMLResponse)
+async def clear_history_route(request: Request):
+    clear_history()
+    return render_home(request, message="Cleared chat history.")
+
+
+@app.post("/maintenance/notes/clear", response_class=HTMLResponse)
+async def clear_notes_route(request: Request):
+    clear_notes()
+    return render_home(request, message="Cleared saved notes.")

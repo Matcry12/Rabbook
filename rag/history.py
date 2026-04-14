@@ -64,3 +64,11 @@ def get_history_entry(history_id, history_path=HISTORY_PATH):
         if item.get("history_id") == history_id:
             return item
     raise ValueError("History item not found.")
+
+
+def clear_history(history_path=HISTORY_PATH):
+    Path(history_path).write_text(
+        json.dumps([], indent=2, ensure_ascii=True),
+        encoding="utf-8",
+    )
+    return True

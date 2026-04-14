@@ -69,7 +69,7 @@
                             <p class="doc-item__name">{{ document.file_name }}</p>
                             <p class="doc-item__meta">{{ document.file_type|upper }} &middot; {{ document.chunk_count }} chunks{% if document.page_count is not none %} &middot; {{ document.page_count }} pg{% endif %}</p>
                         </div>
-                        <form action="/documents/{{ document.document_id }}/delete" method="post" class="doc-item__delete">
+                        <form action="/documents/{{ document.document_id }}/delete" method="post" class="doc-item__delete" onsubmit="return confirm('Delete this document from the library and vector store?');">
                             <button type="submit" class="btn-icon btn-icon--danger" title="Delete document">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                             </button>
@@ -80,6 +80,21 @@
                 {% else %}
                 <p class="empty-state">No sources added yet. Upload a file or import a URL to get started.</p>
                 {% endif %}
+            </div>
+
+            <div class="sidebar__section">
+                <h2 class="sidebar__heading">Maintenance</h2>
+                <div class="action-stack">
+                    <form action="/maintenance/refresh" method="post">
+                        <button type="submit" class="btn btn--sm btn--full">Refresh Runtime State</button>
+                    </form>
+                    <form action="/maintenance/history/clear" method="post" onsubmit="return confirm('Clear the entire chat history?');">
+                        <button type="submit" class="btn btn--danger btn--sm btn--full">Clear Chat History</button>
+                    </form>
+                    <form action="/maintenance/notes/clear" method="post" onsubmit="return confirm('Clear all saved notes?');">
+                        <button type="submit" class="btn btn--danger btn--sm btn--full">Clear Saved Notes</button>
+                    </form>
+                </div>
             </div>
         </aside>
 
@@ -245,7 +260,7 @@
                                 <form action="/history/{{ item.history_id }}/notes" method="post">
                                     <button type="submit" class="btn btn--outline btn--sm">Save To Notes</button>
                                 </form>
-                                <form action="/history/{{ item.history_id }}/delete" method="post">
+                                <form action="/history/{{ item.history_id }}/delete" method="post" onsubmit="return confirm('Delete this history item?');">
                                     <button type="submit" class="btn btn--danger btn--sm">Delete</button>
                                 </form>
                             </div>
@@ -283,7 +298,7 @@
                             </div>
                             {% endif %}
                             <div class="action-row">
-                                <form action="/notes/{{ note.note_id }}/delete" method="post">
+                                <form action="/notes/{{ note.note_id }}/delete" method="post" onsubmit="return confirm('Delete this saved note?');">
                                     <button type="submit" class="btn btn--danger btn--sm">Delete</button>
                                 </form>
                             </div>

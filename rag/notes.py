@@ -44,3 +44,11 @@ def delete_note(note_id, notes_path=NOTES_PATH):
         encoding="utf-8",
     )
     return True
+
+
+def clear_notes(notes_path=NOTES_PATH):
+    Path(notes_path).write_text(
+        json.dumps([], indent=2, ensure_ascii=True),
+        encoding="utf-8",
+    )
+    return True
