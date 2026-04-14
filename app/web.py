@@ -31,7 +31,11 @@ from core.config import (
     UPLOAD_DIR,
     get_google_api_key,
 )
-from rag.ingest import add_documents_to_vectorstore, add_loaded_documents_to_vectorstore
+from rag.ingest import (
+    add_documents_to_vectorstore,
+    add_loaded_documents_to_vectorstore,
+    reingest_directory,
+)
 from rag.exporters import (
     export_answer_as_markdown,
     export_history_as_markdown,
@@ -46,7 +50,12 @@ from rag.history import (
     save_history_entry,
 )
 from rag.notes import clear_notes, delete_note, load_notes, save_note
-from rag.registry import delete_document_from_registry, list_documents, load_chunk_registry
+from rag.registry import (
+    delete_document_from_registry,
+    list_documents,
+    load_chunk_registry,
+    rebuild_chunk_registry_from_vectorstore,
+)
 from rag.retrieve import (
     answer_has_valid_citations,
     build_hit_debug,
@@ -711,6 +720,42 @@ async def refresh_runtime_route(request: Request):
         return render_home(request, error=str(exc))
 
     return render_home(request, message="Refreshed runtime state.")
+
+
+@app.post("/maintenance/registry/rebuild", response_class=HTMLResponse)
+async def rebuild_registry_route(request: Request):
+    try:
+        rebuilt_count = rebuild_chunk_registry_from_vectorstore(
+            get_vectorstore(),
+            str(REGISTRY_PATH),
+        )
+        refresh_runtime_state()
+    except Exception as exc:
+        return render_home(request, error=str(exc))
+
+    return render_home(request, message=f"Rebuilt chunk registry from {rebuilt_count} chunks.")
+
+
+@app.post("/maintenance/uploads/reingest", response_class=HTMLResponse)
+async def reingest_uploads_route(request: Request):
+    try:
+        result = reingest_directory(
+            str(UPLOAD_DIR),
+            get_embeddings(),
+            str(DB_DIR),
+            str(REGISTRY_PATH),
+        )
+        refresh_runtime_state()
+    except Exception as exc:
+        return render_home(request, error=str(exc))
+
+    return render_home(
+        request,
+        message=(
+            f"Re-ingested uploads: {result['document_count']} documents, "
+            f"{result['chunk_count']} chunks."
+        ),
+    )
 
 
 @app.post("/maintenance/history/clear", response_class=HTMLResponse)

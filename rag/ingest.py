@@ -10,6 +10,7 @@ from core.config import (
     DEFAULT_CHUNK_OVERLAP,
     DEFAULT_CHUNK_SIZE,
     DEFAULT_SEMANTIC_PERCENTILE,
+    REGISTRY_PATH,
 )
 from rag.chunking import split_documents
 from rag.loaders import load_documents
@@ -78,6 +79,51 @@ def add_loaded_documents_to_vectorstore(documents, embeddings, persist_dir):
     vector_db = build_vectorstore(enriched_chunks, embeddings, str(persist_path))
     update_chunk_registry(enriched_chunks)
     return vector_db
+
+
+def reingest_directory(data_dir, embeddings, persist_dir, registry_path=REGISTRY_PATH):
+    """
+    Rebuild Chroma and the chunk registry from a directory of uploaded files.
+    """
+
+    documents = load_documents(data_dir)
+    enriched_chunks = prepare_chunks(documents, embeddings)
+
+    persist_path = Path(persist_dir)
+    persist_path.mkdir(parents=True, exist_ok=True)
+
+    vector_db = None
+    if any(persist_path.iterdir()):
+        vector_db = Chroma(
+            embedding_function=embeddings,
+            persist_directory=str(persist_path),
+        )
+        existing = vector_db._collection.get()
+        existing_ids = existing.get("ids", [])
+        if existing_ids:
+            vector_db._collection.delete(ids=existing_ids)
+
+    registry_file = Path(registry_path)
+    registry_file.write_text(
+        '{"by_document": {}, "by_chunk_id": {}}',
+        encoding="utf-8",
+    )
+
+    if not enriched_chunks:
+        return {
+            "document_count": len(documents),
+            "chunk_count": 0,
+        }
+
+    if vector_db is not None:
+        vector_db.add_documents(enriched_chunks)
+    else:
+        build_vectorstore(enriched_chunks, embeddings, str(persist_path))
+    update_chunk_registry(enriched_chunks, registry_path=registry_path)
+    return {
+        "document_count": len(documents),
+        "chunk_count": len(enriched_chunks),
+    }
 
 
 def main():

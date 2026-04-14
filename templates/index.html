@@ -88,6 +88,12 @@
                     <form action="/maintenance/refresh" method="post">
                         <button type="submit" class="btn btn--sm btn--full">Refresh Runtime State</button>
                     </form>
+                    <form action="/maintenance/registry/rebuild" method="post">
+                        <button type="submit" class="btn btn--sm btn--full">Rebuild Chunk Registry</button>
+                    </form>
+                    <form action="/maintenance/uploads/reingest" method="post" onsubmit="return confirm('Re-ingest all uploaded files and rebuild the vector store?');">
+                        <button type="submit" class="btn btn--sm btn--full">Re-ingest Uploads</button>
+                    </form>
                     <form action="/maintenance/history/clear" method="post" onsubmit="return confirm('Clear the entire chat history?');">
                         <button type="submit" class="btn btn--danger btn--sm btn--full">Clear Chat History</button>
                     </form>

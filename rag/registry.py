@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from langchain_core.documents import Document
+
 from core.config import REGISTRY_PATH
 
 
@@ -91,3 +93,27 @@ def delete_document_from_registry(document_id, registry_path=REGISTRY_PATH):
         encoding="utf-8",
     )
     return True
+
+
+def rebuild_chunk_registry_from_vectorstore(vectorstore, registry_path=REGISTRY_PATH):
+    """
+    Rebuild the registry from the current Chroma collection contents.
+    """
+
+    collection = vectorstore._collection.get(include=["documents", "metadatas"])
+    documents = []
+
+    for page_content, metadata in zip(
+        collection.get("documents", []),
+        collection.get("metadatas", []),
+    ):
+        if not page_content:
+            continue
+        documents.append(Document(page_content=page_content, metadata=metadata or {}))
+
+    Path(registry_path).write_text(
+        json.dumps({"by_document": {}, "by_chunk_id": {}}, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    update_chunk_registry(documents, registry_path=registry_path)
+    return len(documents)
