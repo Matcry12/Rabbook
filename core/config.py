@@ -12,6 +12,8 @@ DB_DIR = BASE_DIR / "chroma_db"
 REGISTRY_PATH = BASE_DIR / "chunk_registry.json"
 NOTES_PATH = BASE_DIR / "notes.json"
 HISTORY_PATH = BASE_DIR / "history.json"
+FLASHCARDS_PATH = BASE_DIR / "flashcards.json"
+LEARNING_STATE_PATH = BASE_DIR / "learning_state.json"
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 
@@ -45,6 +47,7 @@ DEFAULT_RERANK_MODEL = os.getenv(
     "RABBOOK_RERANK_MODEL",
     "cross-encoder/ms-marco-MiniLM-L-6-v2",
 )
+ENABLE_LANGGRAPH_AGENT = os.getenv("RABBOOK_ENABLE_LANGGRAPH_AGENT", "false").lower() == "true"
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 URL_IMPORT_DIR.mkdir(parents=True, exist_ok=True)
