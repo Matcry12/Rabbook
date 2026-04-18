@@ -1,11 +1,13 @@
 from pathlib import Path
 import json
 import re
+from typing import Any
 
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from rank_bm25 import BM25Okapi
 from sentence_transformers import CrossEncoder
+from pydantic import BaseModel, Field
 
 from core.config import (
     DEFAULT_BM25_CANDIDATE_K,
@@ -20,6 +22,10 @@ from core.config import (
     REGISTRY_PATH,
 )
 from rag.prompt import build_citation_repair_prompt, build_rag_prompt, rewrite_query
+
+
+class QueryRewriteResult(BaseModel):
+    sub_queries: list[str] = Field(default_factory=list)
 
 
 def load_vectorstore(persist_dir, embeddings):
@@ -131,8 +137,19 @@ def deduplicate_documents(documents):
 
 def generate_sub_queries(query, query_transformer, max_queries=DEFAULT_SUBQUERY_COUNT):
     prompt = rewrite_query(query)
+    structured_transformer = get_structured_query_transformer(query_transformer)
+    if structured_transformer is not None:
+        structured_result = structured_transformer.invoke(prompt)
+        sub_queries = parse_structured_sub_queries(structured_result, query, max_queries=max_queries)
+        if sub_queries:
+            return sub_queries
+
     response = query_transformer.invoke(prompt)
     response_text = getattr(response, "content", None) or getattr(response, "text", "")
+
+    json_sub_queries = parse_sub_queries_json(response_text, query, max_queries=max_queries)
+    if json_sub_queries:
+        return json_sub_queries
 
     sub_queries = []
     for line in response_text.splitlines():
@@ -146,6 +163,85 @@ def generate_sub_queries(query, query_transformer, max_queries=DEFAULT_SUBQUERY_
             break
 
     return sub_queries
+
+
+def get_structured_query_transformer(query_transformer):
+    if query_transformer is None:
+        return None
+
+    with_structured_output = getattr(query_transformer, "with_structured_output", None)
+    if with_structured_output is None:
+        return None
+
+    try:
+        return with_structured_output(QueryRewriteResult)
+    except Exception:
+        return None
+
+
+def parse_structured_sub_queries(response: Any, query, max_queries=DEFAULT_SUBQUERY_COUNT):
+    if isinstance(response, QueryRewriteResult):
+        raw_sub_queries = response.sub_queries
+    elif isinstance(response, dict):
+        raw_sub_queries = response.get("sub_queries")
+    else:
+        raw_sub_queries = getattr(response, "sub_queries", None)
+        if raw_sub_queries is None and isinstance(response, str):
+            return parse_sub_queries_json(response, query, max_queries=max_queries)
+
+    if not isinstance(raw_sub_queries, list):
+        return []
+
+    cleaned_sub_queries = []
+    seen_queries = set()
+    for item in raw_sub_queries:
+        if not isinstance(item, str):
+            continue
+        cleaned = item.strip()
+        if not cleaned or cleaned.lower() == query.lower():
+            continue
+        dedupe_key = cleaned.lower()
+        if dedupe_key in seen_queries:
+            continue
+        cleaned_sub_queries.append(cleaned)
+        seen_queries.add(dedupe_key)
+        if len(cleaned_sub_queries) >= max_queries:
+            break
+
+    return cleaned_sub_queries
+
+
+def parse_sub_queries_json(response_text, query, max_queries=DEFAULT_SUBQUERY_COUNT):
+    json_match = re.search(r"\{[\s\S]*\}", response_text)
+    if not json_match:
+        return []
+
+    try:
+        payload = json.loads(json_match.group(0))
+    except json.JSONDecodeError:
+        return []
+
+    raw_sub_queries = payload.get("sub_queries")
+    if not isinstance(raw_sub_queries, list):
+        return []
+
+    cleaned_sub_queries = []
+    seen_queries = set()
+    for item in raw_sub_queries:
+        if not isinstance(item, str):
+            continue
+        cleaned = item.strip()
+        if not cleaned or cleaned.lower() == query.lower():
+            continue
+        dedupe_key = cleaned.lower()
+        if dedupe_key in seen_queries:
+            continue
+        cleaned_sub_queries.append(cleaned)
+        seen_queries.add(dedupe_key)
+        if len(cleaned_sub_queries) >= max_queries:
+            break
+
+    return cleaned_sub_queries
 
 
 def collect_candidate_documents(
