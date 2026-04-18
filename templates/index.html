@@ -337,6 +337,12 @@
                             {% if debug_data.pipeline_mode %}
                             <li><strong>Pipeline Mode:</strong> {{ debug_data.pipeline_mode }}</li>
                             {% endif %}
+                            {% if debug_data.next_action %}
+                            <li><strong>Next Action:</strong> {{ debug_data.next_action }}</li>
+                            {% endif %}
+                            {% if debug_data.decision_reason %}
+                            <li><strong>Decision Reason:</strong> {{ debug_data.decision_reason }}</li>
+                            {% endif %}
                             <li><strong>Metadata Filter:</strong>
                                 {% if debug_data.metadata_filter %}
                                 file={{ debug_data.metadata_filter.file_name if debug_data.metadata_filter.file_name else 'all' }},

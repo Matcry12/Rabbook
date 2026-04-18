@@ -33,6 +33,8 @@ class RagGraphState(TypedDict, total=False):
     retrieved_documents: list[Any]
     expanded_documents: list[Any]
     grounding: dict[str, Any] | None
+    next_action: str | None
+    decision_reason: str | None
     answer: str | None
     citations: list[dict]
     sources: list[dict]
@@ -59,6 +61,8 @@ def build_initial_graph_state(
         "retrieved_documents": [],
         "expanded_documents": [],
         "grounding": None,
+        "next_action": None,
+        "decision_reason": None,
         "answer": None,
         "citations": [],
         "sources": [],
@@ -156,10 +160,35 @@ def check_grounding_node(
 
 
 def route_after_grounding(state: RagGraphState) -> str:
-    grounding = state.get("grounding") or {}
-    if grounding.get("passed"):
+    if state.get("next_action") == "answer":
         return "generate_answer"
     return "fallback_answer"
+
+
+def decide_next_action_node(state: RagGraphState) -> RagGraphState:
+    updated_state = dict(state)
+    grounding = state.get("grounding") or {}
+    retrieved_documents = state.get("retrieved_documents", [])
+    expanded_documents = state.get("expanded_documents", [])
+
+    if grounding.get("passed"):
+        next_action = "answer"
+        decision_reason = "grounding_passed"
+    elif retrieved_documents or expanded_documents:
+        next_action = "retry_retrieval"
+        decision_reason = "partial_local_evidence"
+    else:
+        next_action = "fallback"
+        decision_reason = "no_local_evidence"
+
+    updated_state["next_action"] = next_action
+    updated_state["decision_reason"] = decision_reason
+
+    if state.get("debug_mode", False) and updated_state.get("debug_data") is not None:
+        updated_state["debug_data"]["next_action"] = next_action
+        updated_state["debug_data"]["decision_reason"] = decision_reason
+
+    return updated_state
 
 
 def fallback_answer_node(
@@ -288,6 +317,7 @@ def build_rag_graph(
             min_grounded_chunks=min_grounded_chunks,
         ),
     )
+    graph.add_node("decide_next_action", decide_next_action_node)
     graph.add_node(
         "generate_answer",
         lambda state: generate_answer_node(
@@ -308,8 +338,9 @@ def build_rag_graph(
     graph.add_edge("prepare_input", "retrieve")
     graph.add_edge("retrieve", "expand_context")
     graph.add_edge("expand_context", "check_grounding")
+    graph.add_edge("check_grounding", "decide_next_action")
     graph.add_conditional_edges(
-        "check_grounding",
+        "decide_next_action",
         route_after_grounding,
         {
             "generate_answer": "generate_answer",

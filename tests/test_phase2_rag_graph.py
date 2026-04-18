@@ -4,6 +4,7 @@ from unittest.mock import patch
 from agents.rag_graph import (
     build_initial_graph_state,
     check_grounding_node,
+    decide_next_action_node,
     expand_context_node,
     fallback_answer_node,
     generate_answer_node,
@@ -27,6 +28,7 @@ class Phase2RagGraphTests(unittest.TestCase):
         self.assertTrue(state["debug_mode"])
         self.assertEqual(state["retrieved_documents"], [])
         self.assertIsNone(state["metadata_filter"])
+        self.assertIsNone(state["next_action"])
 
     def test_prepare_input_node_builds_metadata_filter(self):
         state = build_initial_graph_state(
@@ -121,11 +123,44 @@ class Phase2RagGraphTests(unittest.TestCase):
 
     def test_route_after_grounding_chooses_fallback_when_evidence_is_weak(self):
         state = build_initial_graph_state("What is this roadmap about?")
-        state["grounding"] = {"passed": False}
+        state["next_action"] = "retry_retrieval"
 
         next_node = route_after_grounding(state)
 
         self.assertEqual(next_node, "fallback_answer")
+
+    def test_decide_next_action_node_marks_retry_when_local_evidence_is_partial(self):
+        state = build_initial_graph_state("What is this roadmap about?", debug_mode=True)
+        state["retrieved_documents"] = ["doc-a"]
+        state["expanded_documents"] = ["doc-a", "doc-a-next"]
+        state["grounding"] = {"passed": False}
+        state["debug_data"] = {"grounding": {}, "stage_counts": {}}
+
+        updated_state = decide_next_action_node(state)
+
+        self.assertEqual(updated_state["next_action"], "retry_retrieval")
+        self.assertEqual(updated_state["decision_reason"], "partial_local_evidence")
+        self.assertEqual(updated_state["debug_data"]["next_action"], "retry_retrieval")
+
+    def test_decide_next_action_node_marks_fallback_when_no_local_evidence_exists(self):
+        state = build_initial_graph_state("What is this roadmap about?", debug_mode=True)
+        state["grounding"] = {"passed": False}
+        state["debug_data"] = {"grounding": {}, "stage_counts": {}}
+
+        updated_state = decide_next_action_node(state)
+
+        self.assertEqual(updated_state["next_action"], "fallback")
+        self.assertEqual(updated_state["decision_reason"], "no_local_evidence")
+
+    def test_decide_next_action_node_marks_answer_when_grounding_passes(self):
+        state = build_initial_graph_state("What is this roadmap about?", debug_mode=True)
+        state["grounding"] = {"passed": True}
+        state["debug_data"] = {"grounding": {}, "stage_counts": {}}
+
+        updated_state = decide_next_action_node(state)
+
+        self.assertEqual(updated_state["next_action"], "answer")
+        self.assertEqual(updated_state["decision_reason"], "grounding_passed")
 
     @patch("agents.rag_graph.build_sources")
     def test_fallback_answer_node_stores_fallback_answer_and_sources(self, mock_build_sources):
