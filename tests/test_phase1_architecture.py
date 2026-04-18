@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from agents.services import answer_query, build_metadata_filter, build_page_range
+from agents.services import AnswerResult, answer_query, build_metadata_filter, build_page_range
 
 
 class FakeDoc:
@@ -99,6 +99,39 @@ class Phase1ArchitectureTests(unittest.TestCase):
         self.assertEqual(result.sources[0]["chunk_id"], "c1")
         self.assertEqual(result.citations[0]["number"], 1)
         self.assertTrue(result.debug_data["grounding"]["passed"])
+
+    @patch("agents.services.run_rag_graph_answer")
+    def test_answer_query_can_delegate_to_langgraph_runner(self, mock_run_rag_graph_answer):
+        mock_run_rag_graph_answer.return_value = AnswerResult(
+            answer="Graph answer [1]",
+            sources=[{"chunk_id": "c1"}],
+            citations=[{"number": 1}],
+            debug_data={"grounding": {"reason": "answer_is_grounded"}},
+        )
+
+        result = answer_query(
+            "What is this roadmap about?",
+            vectorstore=object(),
+            chunk_registry={"by_chunk_id": {}},
+            reranker=object(),
+            bm25_index=object(),
+            llm=object(),
+            retrieval_k=4,
+            rerank_candidate_k=8,
+            bm25_candidate_k=8,
+            context_window=1,
+            max_expanded_chunks=12,
+            min_grounded_rerank_score=1.0,
+            min_grounded_chunks=1,
+            grounded_fallback_message="fallback",
+            enable_query_transform=True,
+            debug_mode=True,
+            use_langgraph=True,
+        )
+
+        self.assertEqual(result.answer, "Graph answer [1]")
+        self.assertEqual(result.sources, [{"chunk_id": "c1"}])
+        self.assertEqual(result.citations, [{"number": 1}])
 
 
 if __name__ == "__main__":

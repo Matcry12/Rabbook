@@ -22,6 +22,12 @@ class AnswerResult:
     debug_data: dict | None
 
 
+def run_rag_graph_answer(*args, **kwargs):
+    from agents.rag_graph import run_rag_graph_answer as graph_runner
+
+    return graph_runner(*args, **kwargs)
+
+
 def answer_query(
     query,
     *,
@@ -44,7 +50,32 @@ def answer_query(
     page_start="",
     page_end="",
     debug_mode=False,
+    use_langgraph=False,
 ):
+    if use_langgraph:
+        return run_rag_graph_answer(
+            query,
+            vectorstore=vectorstore,
+            chunk_registry=chunk_registry,
+            reranker=reranker,
+            bm25_index=bm25_index,
+            llm=llm,
+            retrieval_k=retrieval_k,
+            rerank_candidate_k=rerank_candidate_k,
+            bm25_candidate_k=bm25_candidate_k,
+            context_window=context_window,
+            max_expanded_chunks=max_expanded_chunks,
+            min_grounded_rerank_score=min_grounded_rerank_score,
+            min_grounded_chunks=min_grounded_chunks,
+            grounded_fallback_message=grounded_fallback_message,
+            enable_query_transform=enable_query_transform,
+            selected_file=selected_file,
+            selected_file_type=selected_file_type,
+            page_start=page_start,
+            page_end=page_end,
+            debug_mode=debug_mode,
+        )
+
     metadata_filter = build_metadata_filter(
         selected_file=selected_file,
         selected_file_type=selected_file_type,
