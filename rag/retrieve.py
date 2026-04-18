@@ -28,6 +28,10 @@ class QueryRewriteResult(BaseModel):
     sub_queries: list[str] = Field(default_factory=list)
 
 
+class AnswerDraftResult(BaseModel):
+    answer: str = ""
+
+
 def load_vectorstore(persist_dir, embeddings):
     """
     Load a Chroma vector store from the given directory.
@@ -743,6 +747,24 @@ def generate_answer(query, context, llm):
         return "Language model is not available."
 
     valid_sources = extract_valid_source_numbers(context)
+    structured_llm = get_structured_answer_llm(llm)
+    if structured_llm is not None:
+        structured_response = structured_llm.invoke(build_rag_prompt(context, query))
+        structured_answer = extract_structured_answer(structured_response)
+        if structured_answer:
+            if answer_has_valid_citations(structured_answer, valid_sources):
+                return structured_answer
+
+            repaired_answer = repair_answer_with_citations(
+                query=query,
+                context=context,
+                draft_answer=structured_answer,
+                llm=llm,
+                valid_sources=valid_sources,
+            )
+            if repaired_answer:
+                return repaired_answer
+
     response = llm.invoke(build_rag_prompt(context, query))
     answer = extract_response_text(response)
 
@@ -785,6 +807,34 @@ def repair_answer_with_citations(query, context, draft_answer, llm, valid_source
         return repaired_answer
 
     return None
+
+
+def get_structured_answer_llm(llm):
+    with_structured_output = getattr(llm, "with_structured_output", None)
+    if with_structured_output is None:
+        return None
+
+    try:
+        return with_structured_output(AnswerDraftResult)
+    except Exception:
+        return None
+
+
+def extract_structured_answer(response):
+    if response is None:
+        return ""
+
+    if isinstance(response, AnswerDraftResult):
+        return response.answer.strip()
+
+    if isinstance(response, dict):
+        return str(response.get("answer", "")).strip()
+
+    response_answer = getattr(response, "answer", None)
+    if response_answer is not None:
+        return str(response_answer).strip()
+
+    return extract_response_text(response)
 
 
 def extract_response_text(response):
