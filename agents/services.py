@@ -53,7 +53,7 @@ def answer_query(
     use_langgraph=False,
 ):
     if use_langgraph:
-        return run_rag_graph_answer(
+        result = run_rag_graph_answer(
             query,
             vectorstore=vectorstore,
             chunk_registry=chunk_registry,
@@ -75,6 +75,9 @@ def answer_query(
             page_end=page_end,
             debug_mode=debug_mode,
         )
+        if debug_mode and result.debug_data is not None:
+            result.debug_data["pipeline_mode"] = "langgraph_rag"
+        return result
 
     metadata_filter = build_metadata_filter(
         selected_file=selected_file,
@@ -98,6 +101,7 @@ def answer_query(
     if debug_mode:
         retrieved_documents, debug_data = retrieval_result
         debug_data["metadata_filter"] = metadata_filter
+        debug_data["pipeline_mode"] = "direct_rag"
         debug_data["grounding"] = {
             "stage": "retrieval",
             "passed": None,

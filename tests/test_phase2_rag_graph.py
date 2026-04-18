@@ -5,8 +5,10 @@ from agents.rag_graph import (
     build_initial_graph_state,
     check_grounding_node,
     expand_context_node,
+    fallback_answer_node,
     generate_answer_node,
     prepare_input_node,
+    route_after_grounding,
     run_rag_graph_answer,
     retrieve_node,
 )
@@ -117,6 +119,31 @@ class Phase2RagGraphTests(unittest.TestCase):
         self.assertEqual(updated_state["debug_data"]["grounding"]["reason"], "enough_evidence")
         self.assertEqual(updated_state["debug_data"]["grounding"]["stage"], "retrieval")
 
+    def test_route_after_grounding_chooses_fallback_when_evidence_is_weak(self):
+        state = build_initial_graph_state("What is this roadmap about?")
+        state["grounding"] = {"passed": False}
+
+        next_node = route_after_grounding(state)
+
+        self.assertEqual(next_node, "fallback_answer")
+
+    @patch("agents.rag_graph.build_sources")
+    def test_fallback_answer_node_stores_fallback_answer_and_sources(self, mock_build_sources):
+        state = build_initial_graph_state("What is this roadmap about?", debug_mode=True)
+        state["retrieved_documents"] = ["doc-a"]
+        state["debug_data"] = {"grounding": {}, "stage_counts": {}}
+        mock_build_sources.return_value = [{"chunk_id": "c1"}]
+
+        updated_state = fallback_answer_node(
+            state,
+            grounded_fallback_message="fallback",
+        )
+
+        self.assertEqual(updated_state["answer"], "fallback")
+        self.assertEqual(updated_state["sources"], [{"chunk_id": "c1"}])
+        self.assertEqual(updated_state["citations"], [])
+        self.assertEqual(updated_state["debug_data"]["graph_path"], "fallback_answer")
+
     @patch("agents.rag_graph.build_citations")
     @patch("agents.rag_graph.answer_is_grounded")
     @patch("agents.rag_graph.generate_answer")
@@ -155,6 +182,7 @@ class Phase2RagGraphTests(unittest.TestCase):
         self.assertEqual(updated_state["answer"], "Grounded answer [1]")
         self.assertEqual(updated_state["sources"], [{"chunk_id": "c1"}])
         self.assertEqual(updated_state["citations"], [{"number": 1}])
+        self.assertEqual(updated_state["debug_data"]["graph_path"], "generate_answer")
         self.assertEqual(updated_state["debug_data"]["grounding"]["reason"], "answer_is_grounded")
 
     @patch("agents.rag_graph.build_rag_graph")
@@ -190,6 +218,7 @@ class Phase2RagGraphTests(unittest.TestCase):
         self.assertEqual(result.answer, "Graph answer [1]")
         self.assertEqual(result.sources, [{"chunk_id": "c1"}])
         self.assertEqual(result.citations, [{"number": 1}])
+        self.assertEqual(result.debug_data["pipeline_mode"], "langgraph_rag")
         self.assertEqual(result.debug_data["grounding"]["reason"], "answer_is_grounded")
 
 

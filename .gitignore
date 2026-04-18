@@ -11,3 +11,4 @@ data/*.pdf
 data/*.txt
 
 tests/retrieved_docs.json
+.omx/

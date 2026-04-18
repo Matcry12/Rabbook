@@ -46,6 +46,7 @@ from core.config import (
     DEFAULT_CONTEXT_WINDOW,
     DEFAULT_BM25_CANDIDATE_K,
     DEFAULT_ENABLE_QUERY_TRANSFORM,
+    ENABLE_LANGGRAPH_AGENT,
     DEFAULT_GROUNDED_FALLBACK_MESSAGE,
     DEFAULT_LLM_MODEL,
     DEFAULT_MAX_EXPANDED_CHUNKS,
@@ -172,6 +173,7 @@ def answer_query(
         page_start=page_start,
         page_end=page_end,
         debug_mode=debug_mode,
+        use_langgraph=ENABLE_LANGGRAPH_AGENT,
     )
     return result.answer, result.sources, result.citations, result.debug_data
 

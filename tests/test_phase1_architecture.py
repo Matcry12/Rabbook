@@ -98,6 +98,7 @@ class Phase1ArchitectureTests(unittest.TestCase):
         self.assertEqual(result.answer, "Grounded answer [1]")
         self.assertEqual(result.sources[0]["chunk_id"], "c1")
         self.assertEqual(result.citations[0]["number"], 1)
+        self.assertEqual(result.debug_data["pipeline_mode"], "direct_rag")
         self.assertTrue(result.debug_data["grounding"]["passed"])
 
     @patch("agents.services.run_rag_graph_answer")
@@ -132,6 +133,7 @@ class Phase1ArchitectureTests(unittest.TestCase):
         self.assertEqual(result.answer, "Graph answer [1]")
         self.assertEqual(result.sources, [{"chunk_id": "c1"}])
         self.assertEqual(result.citations, [{"number": 1}])
+        self.assertEqual(result.debug_data["pipeline_mode"], "langgraph_rag")
 
 
 if __name__ == "__main__":

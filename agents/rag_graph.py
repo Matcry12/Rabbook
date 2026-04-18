@@ -155,6 +155,27 @@ def check_grounding_node(
     return updated_state
 
 
+def route_after_grounding(state: RagGraphState) -> str:
+    grounding = state.get("grounding") or {}
+    if grounding.get("passed"):
+        return "generate_answer"
+    return "fallback_answer"
+
+
+def fallback_answer_node(
+    state: RagGraphState,
+    *,
+    grounded_fallback_message,
+) -> RagGraphState:
+    updated_state = dict(state)
+    updated_state["sources"] = build_sources(state.get("retrieved_documents", []))
+    updated_state["answer"] = grounded_fallback_message
+    updated_state["citations"] = []
+    if state.get("debug_mode", False) and updated_state.get("debug_data") is not None:
+        updated_state["debug_data"]["graph_path"] = "fallback_answer"
+    return updated_state
+
+
 def generate_answer_node(
     state: RagGraphState,
     *,
@@ -164,15 +185,12 @@ def generate_answer_node(
     updated_state = dict(state)
     retrieved_documents = state.get("retrieved_documents", [])
     updated_state["sources"] = build_sources(retrieved_documents)
-
-    grounding = state.get("grounding") or {}
-    if not grounding.get("passed"):
-        updated_state["answer"] = grounded_fallback_message
-        updated_state["citations"] = []
-        return updated_state
+    if state.get("debug_mode", False) and updated_state.get("debug_data") is not None:
+        updated_state["debug_data"]["graph_path"] = "generate_answer"
 
     context = format_context(state.get("expanded_documents", []))
     answer = generate_answer(state["query"], context, llm)
+    grounding = state.get("grounding") or {}
     if not answer_is_grounded(answer, context):
         if state.get("debug_mode", False) and updated_state.get("debug_data") is not None:
             updated_state["debug_data"]["grounding"] = {
@@ -278,13 +296,28 @@ def build_rag_graph(
             grounded_fallback_message=grounded_fallback_message,
         ),
     )
+    graph.add_node(
+        "fallback_answer",
+        lambda state: fallback_answer_node(
+            state,
+            grounded_fallback_message=grounded_fallback_message,
+        ),
+    )
     graph.add_node("finalize_response", finalize_response_node)
     graph.set_entry_point("prepare_input")
     graph.add_edge("prepare_input", "retrieve")
     graph.add_edge("retrieve", "expand_context")
     graph.add_edge("expand_context", "check_grounding")
-    graph.add_edge("check_grounding", "generate_answer")
+    graph.add_conditional_edges(
+        "check_grounding",
+        route_after_grounding,
+        {
+            "generate_answer": "generate_answer",
+            "fallback_answer": "fallback_answer",
+        },
+    )
     graph.add_edge("generate_answer", "finalize_response")
+    graph.add_edge("fallback_answer", "finalize_response")
     graph.add_edge("finalize_response", END)
     return graph.compile()
 
@@ -337,9 +370,12 @@ def run_rag_graph_answer(
         debug_mode=debug_mode,
     )
     final_state = graph.invoke(initial_state)
+    debug_data = final_state.get("debug_data")
+    if debug_mode and debug_data is not None:
+        debug_data["pipeline_mode"] = "langgraph_rag"
     return AnswerResult(
         answer=final_state.get("answer", grounded_fallback_message),
         sources=final_state.get("sources", []),
         citations=final_state.get("citations", []),
-        debug_data=final_state.get("debug_data"),
+        debug_data=debug_data,
     )

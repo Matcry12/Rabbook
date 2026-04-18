@@ -334,6 +334,9 @@
                     <div class="debug-block">
                         <h3>Grounding Status</h3>
                         <ul class="debug-list">
+                            {% if debug_data.pipeline_mode %}
+                            <li><strong>Pipeline Mode:</strong> {{ debug_data.pipeline_mode }}</li>
+                            {% endif %}
                             <li><strong>Metadata Filter:</strong>
                                 {% if debug_data.metadata_filter %}
                                 file={{ debug_data.metadata_filter.file_name if debug_data.metadata_filter.file_name else 'all' }},

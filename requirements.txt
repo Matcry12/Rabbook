@@ -1,6 +1,7 @@
 beautifulsoup4
 fastapi
 jinja2
+langgraph
 langchain-chroma
 langchain-community
 langchain-google-genai
