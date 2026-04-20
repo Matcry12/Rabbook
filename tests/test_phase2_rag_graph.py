@@ -121,9 +121,17 @@ class Phase2RagGraphTests(unittest.TestCase):
         self.assertEqual(updated_state["debug_data"]["grounding"]["reason"], "enough_evidence")
         self.assertEqual(updated_state["debug_data"]["grounding"]["stage"], "retrieval")
 
-    def test_route_after_grounding_chooses_fallback_when_evidence_is_weak(self):
+    def test_route_after_grounding_chooses_refine_query_when_retry_retrieval(self):
         state = build_initial_graph_state("What is this roadmap about?")
         state["next_action"] = "retry_retrieval"
+
+        next_node = route_after_grounding(state)
+
+        self.assertEqual(next_node, "refine_query")
+
+    def test_route_after_grounding_chooses_fallback_when_no_evidence(self):
+        state = build_initial_graph_state("What is this roadmap about?")
+        state["next_action"] = "fallback"
 
         next_node = route_after_grounding(state)
 

@@ -47,6 +47,16 @@ Corrected Answer:
     return prompt
 
 
+def build_query_refinement_prompt(original_query, decision_reason):
+    return f"""You are helping a RAG system improve a retrieval query that returned weak evidence.
+
+Original query: {original_query}
+Reason retrieval failed: {decision_reason}
+
+Write one shorter, more specific retrieval query that is more likely to find relevant document chunks.
+Return only the query text, nothing else."""
+
+
 def rewrite_query(query):
     query_prompt = f"""You are an AI assistant that rewrites a user query into 2 to 4 short retrieval queries for a RAG system.
 

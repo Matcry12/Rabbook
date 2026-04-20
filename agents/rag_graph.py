@@ -7,6 +7,7 @@ from agents.services import (
     build_metadata_filter,
     build_sources,
 )
+from rag.prompt import build_query_refinement_prompt
 from rag.retrieve import (
     check_grounding_evidence,
     expand_with_context_window,
@@ -35,6 +36,8 @@ class RagGraphState(TypedDict, total=False):
     grounding: dict[str, Any] | None
     next_action: str | None
     decision_reason: str | None
+    retry_count: int
+    refined_query: str | None
     answer: str | None
     citations: list[dict]
     sources: list[dict]
@@ -63,6 +66,8 @@ def build_initial_graph_state(
         "grounding": None,
         "next_action": None,
         "decision_reason": None,
+        "retry_count": 0,
+        "refined_query": None,
         "answer": None,
         "citations": [],
         "sources": [],
@@ -85,7 +90,7 @@ def retrieve_node(
     updated_state = dict(state)
     retrieval_result = retrieve_documents_with_query_transform(
         vectorstore,
-        state["query"],
+        state.get("refined_query") or state["query"],
         k=retrieval_k,
         reranker=reranker,
         bm25_index=bm25_index,
@@ -162,6 +167,8 @@ def check_grounding_node(
 def route_after_grounding(state: RagGraphState) -> str:
     if state.get("next_action") == "answer":
         return "generate_answer"
+    if state.get("next_action") == "retry_retrieval":
+        return "refine_query"
     return "fallback_answer"
 
 
@@ -171,15 +178,17 @@ def decide_next_action_node(state: RagGraphState) -> RagGraphState:
     retrieved_documents = state.get("retrieved_documents", [])
     expanded_documents = state.get("expanded_documents", [])
 
+    retry_count = state.get("retry_count", 0)
+
     if grounding.get("passed"):
         next_action = "answer"
         decision_reason = "grounding_passed"
-    elif retrieved_documents or expanded_documents:
+    elif (retrieved_documents or expanded_documents) and retry_count < 2:
         next_action = "retry_retrieval"
         decision_reason = "partial_local_evidence"
     else:
         next_action = "fallback"
-        decision_reason = "no_local_evidence"
+        decision_reason = "retry_cap_reached" if retry_count >= 2 else "no_local_evidence"
 
     updated_state["next_action"] = next_action
     updated_state["decision_reason"] = decision_reason
@@ -187,6 +196,24 @@ def decide_next_action_node(state: RagGraphState) -> RagGraphState:
     if state.get("debug_mode", False) and updated_state.get("debug_data") is not None:
         updated_state["debug_data"]["next_action"] = next_action
         updated_state["debug_data"]["decision_reason"] = decision_reason
+
+    return updated_state
+
+
+def refine_query_node(state: RagGraphState, *, llm) -> RagGraphState:
+    updated_state = dict(state)
+    prompt = build_query_refinement_prompt(
+        original_query=state["query"],
+        decision_reason=state.get("decision_reason", "unknown"),
+    )
+    response = llm.invoke(prompt)
+    refined = (getattr(response, "content", None) or getattr(response, "text", "") or "").strip()
+    updated_state["refined_query"] = refined or state["query"]
+    updated_state["retry_count"] = state.get("retry_count", 0) + 1
+
+    if state.get("debug_mode") and updated_state.get("debug_data") is not None:
+        updated_state["debug_data"]["refined_query"] = updated_state["refined_query"]
+        updated_state["debug_data"]["retry_count"] = updated_state["retry_count"]
 
     return updated_state
 
@@ -319,6 +346,10 @@ def build_rag_graph(
     )
     graph.add_node("decide_next_action", decide_next_action_node)
     graph.add_node(
+        "refine_query",
+        lambda state: refine_query_node(state, llm=llm),
+    )
+    graph.add_node(
         "generate_answer",
         lambda state: generate_answer_node(
             state,
@@ -344,9 +375,11 @@ def build_rag_graph(
         route_after_grounding,
         {
             "generate_answer": "generate_answer",
+            "refine_query": "refine_query",
             "fallback_answer": "fallback_answer",
         },
     )
+    graph.add_edge("refine_query", "retrieve")
     graph.add_edge("generate_answer", "finalize_response")
     graph.add_edge("fallback_answer", "finalize_response")
     graph.add_edge("finalize_response", END)
