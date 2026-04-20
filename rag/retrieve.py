@@ -143,7 +143,10 @@ def generate_sub_queries(query, query_transformer, max_queries=DEFAULT_SUBQUERY_
     prompt = rewrite_query(query)
     structured_transformer = get_structured_query_transformer(query_transformer)
     if structured_transformer is not None:
-        structured_result = structured_transformer.invoke(prompt)
+        try:
+            structured_result = structured_transformer.invoke(prompt)
+        except Exception:
+            structured_result = None
         sub_queries = parse_structured_sub_queries(structured_result, query, max_queries=max_queries)
         if sub_queries:
             return sub_queries
@@ -749,7 +752,10 @@ def generate_answer(query, context, llm):
     valid_sources = extract_valid_source_numbers(context)
     structured_llm = get_structured_answer_llm(llm)
     if structured_llm is not None:
-        structured_response = structured_llm.invoke(build_rag_prompt(context, query))
+        try:
+            structured_response = structured_llm.invoke(build_rag_prompt(context, query))
+        except Exception:
+            structured_response = None
         structured_answer = extract_structured_answer(structured_response)
         if structured_answer:
             if answer_has_valid_citations(structured_answer, valid_sources):
