@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 import re
+import time
 from typing import Any
 
 from langchain_chroma import Chroma
@@ -139,23 +140,65 @@ def deduplicate_documents(documents):
     return unique_docs
 
 
+def extract_response_text(response):
+    if response is None:
+        return ""
+
+    content = getattr(response, "content", None)
+    if isinstance(content, list):
+        text_parts = []
+        for part in content:
+            if isinstance(part, str):
+                text_parts.append(part.strip())
+            elif isinstance(part, dict) and "text" in part:
+                text_parts.append(str(part["text"]).strip())
+        return " ".join(part for part in text_parts if part).strip()
+
+    if isinstance(content, str):
+        return content.strip()
+
+    text = getattr(response, "text", "")
+    if isinstance(text, str):
+        return text.strip()
+
+    return ""
+
+
 def generate_sub_queries(query, query_transformer, max_queries=DEFAULT_SUBQUERY_COUNT):
+    print(f"[Query Transform] Start | Query='{query}' | Max Queries={max_queries}")
     prompt = rewrite_query(query)
+    print("[Query Transform] Prompt built.")
     structured_transformer = get_structured_query_transformer(query_transformer)
     if structured_transformer is not None:
+        print("[Query Transform] Structured transformer available. Starting structured invoke...")
+        started_at = time.perf_counter()
         try:
             structured_result = structured_transformer.invoke(prompt)
+            elapsed = time.perf_counter() - started_at
+            print(f"[Query Transform] Structured invoke completed in {elapsed:.2f}s.")
         except Exception:
+            elapsed = time.perf_counter() - started_at
+            print(f"[Query Transform] Structured invoke failed after {elapsed:.2f}s.")
             structured_result = None
         sub_queries = parse_structured_sub_queries(structured_result, query, max_queries=max_queries)
         if sub_queries:
+            print(f"[Query Transform] Structured parse returned {len(sub_queries)} query(s): {sub_queries}")
             return sub_queries
+        print("[Query Transform] Structured parse returned no usable queries.")
+    else:
+        print("[Query Transform] Structured transformer unavailable.")
 
+    print("[Query Transform] Falling back to direct invoke...")
+    fallback_started_at = time.perf_counter()
     response = query_transformer.invoke(prompt)
-    response_text = getattr(response, "content", None) or getattr(response, "text", "")
+    fallback_elapsed = time.perf_counter() - fallback_started_at
+    print(f"[Query Transform] Direct invoke completed in {fallback_elapsed:.2f}s.")
+    response_text = extract_response_text(response)
+    print(f"[Query Transform] Extracted response text length: {len(response_text)}")
 
     json_sub_queries = parse_sub_queries_json(response_text, query, max_queries=max_queries)
     if json_sub_queries:
+        print(f"[Query Transform] JSON parse returned {len(json_sub_queries)} query(s): {json_sub_queries}")
         return json_sub_queries
 
     sub_queries = []
@@ -163,12 +206,13 @@ def generate_sub_queries(query, query_transformer, max_queries=DEFAULT_SUBQUERY_
         cleaned = re.sub(r"^\s*\d+[\).\-\s]+", "", line).strip()
         if not cleaned or cleaned.lower().startswith("sub-queries"):
             continue
-        if cleaned.lower() == query.lower():
+        if not is_valid_retrieval_query(cleaned, original_query=query):
             continue
         sub_queries.append(cleaned)
         if len(sub_queries) >= max_queries:
             break
 
+    print(f"[Query Transform] Line parse returned {len(sub_queries)} query(s): {sub_queries}")
     return sub_queries
 
 
@@ -181,7 +225,9 @@ def get_structured_query_transformer(query_transformer):
         return None
 
     try:
-        return with_structured_output(QueryRewriteResult)
+        # Explicitly use function_calling method for better compatibility 
+        # and much faster response times with Gemma models.
+        return with_structured_output(QueryRewriteResult, method="function_calling")
     except Exception:
         return None
 
@@ -205,7 +251,7 @@ def parse_structured_sub_queries(response: Any, query, max_queries=DEFAULT_SUBQU
         if not isinstance(item, str):
             continue
         cleaned = item.strip()
-        if not cleaned or cleaned.lower() == query.lower():
+        if not is_valid_retrieval_query(cleaned, original_query=query):
             continue
         dedupe_key = cleaned.lower()
         if dedupe_key in seen_queries:
@@ -238,7 +284,7 @@ def parse_sub_queries_json(response_text, query, max_queries=DEFAULT_SUBQUERY_CO
         if not isinstance(item, str):
             continue
         cleaned = item.strip()
-        if not cleaned or cleaned.lower() == query.lower():
+        if not is_valid_retrieval_query(cleaned, original_query=query):
             continue
         dedupe_key = cleaned.lower()
         if dedupe_key in seen_queries:
@@ -249,6 +295,38 @@ def parse_sub_queries_json(response_text, query, max_queries=DEFAULT_SUBQUERY_CO
             break
 
     return cleaned_sub_queries
+
+
+def is_valid_retrieval_query(candidate, *, original_query):
+    if not candidate:
+        return False
+
+    normalized = candidate.strip()
+    lowered = normalized.lower()
+    if not normalized or lowered == original_query.lower():
+        return False
+
+    blocked_prefixes = (
+        "i'm sorry",
+        "i am sorry",
+        "please provide",
+        "no retrieval queries needed",
+        "the query",
+    )
+    blocked_phrases = (
+        "does not contain enough information",
+        "does not contain any information",
+        "please provide a specific question",
+        "please provide a topic",
+        "is a greeting",
+        "cannot be converted into retrieval queries",
+        "no retrieval queries needed",
+    )
+
+    if lowered.startswith(blocked_prefixes):
+        return False
+
+    return not any(phrase in lowered for phrase in blocked_phrases)
 
 
 def collect_candidate_documents(
@@ -841,17 +919,6 @@ def extract_structured_answer(response):
         return str(response_answer).strip()
 
     return extract_response_text(response)
-
-
-def extract_response_text(response):
-    if response is None:
-        return ""
-
-    return (
-        getattr(response, "text", None)
-        or getattr(response, "content", None)
-        or ""
-    ).strip()
 
 
 def extract_valid_source_numbers(context):

@@ -22,6 +22,14 @@ class AnswerResult:
     debug_data: dict | None
 
 
+@dataclass
+class ResearchResult:
+    synthesis: str
+    sources: list[dict]   # {url, title, snippet, content}
+    note_id: str | None
+    debug_data: dict | None
+
+
 def run_rag_graph_answer(*args, **kwargs):
     from agents.rag_graph import run_rag_graph_answer as graph_runner
 
@@ -51,6 +59,7 @@ def answer_query(
     page_end="",
     debug_mode=False,
     use_langgraph=False,
+    enable_research=False,
 ):
     if use_langgraph:
         result = run_rag_graph_answer(
@@ -74,11 +83,13 @@ def answer_query(
             page_start=page_start,
             page_end=page_end,
             debug_mode=debug_mode,
+            enable_research=enable_research,
         )
         if debug_mode and result.debug_data is not None:
             result.debug_data["pipeline_mode"] = "langgraph_rag"
         return result
 
+    # Non-agentic path (Direct RAG) does not support research fallback yet
     metadata_filter = build_metadata_filter(
         selected_file=selected_file,
         selected_file_type=selected_file_type,

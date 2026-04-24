@@ -1,34 +1,60 @@
 # Rabbook
 
-Rabbook is a retrieval-augmented generation application for asking questions over personal documents and imported web pages. I built it as a personal AI engineering project to explore how a real RAG system moves beyond basic vector search into a more reliable, inspectable, and user-friendly product.
+Rabbook is an advanced Retrieval-Augmented Generation (RAG) application for asking questions over personal documents and global web knowledge. I built it as a personal AI engineering project to explore how a real RAG system moves beyond basic vector search into a reliable, agentic, and self-improving product.
 
-The app supports document upload, URL import, grounded answering with citations, retrieval debugging, document management, chat history, saved notes, and export features. The goal is not only to generate answers, but to make the retrieval and grounding process visible and controllable.
+The app supports document upload, URL import, grounded answering with citations, retrieval debugging, document management, chat history, saved notes, and export features.
 
 ## Why This Project Matters
 
-Most beginner RAG projects stop at embedding documents and calling an LLM. Rabbook goes further by adding retrieval quality improvements, safety checks, and practical product features:
+Most beginner RAG projects stop at embedding documents and calling an LLM. Rabbook goes further by adding retrieval quality improvements, agentic self-correction, and autonomous research capabilities:
 
-- semantic chunking for better document segmentation
-- metadata-aware retrieval and filtering
-- dense retrieval plus BM25 hybrid retrieval
-- reciprocal rank fusion and reranking
-- context window expansion for neighboring chunks
-- citation generation with validation and repair
-- grounded fallback behavior when evidence is weak
-- answer-level evaluation for end-to-end RAG testing
+- **Agentic RAG (LangGraph):** Moves beyond linear pipelines. Features a self-correcting loop that evaluates retrieval evidence, refines queries when grounding is weak, and handles retries.
+- **Autonomous Research Agent:** A dedicated agent that plans and executes multi-query web searches (via DuckDuckGo) when local documents are insufficient.
+- **Self-Expanding Knowledge Loop:** The Research Agent doesn't just synthesize text; it *ingests* web findings back into the vector store, allowing the RAG pipeline to provide grounded answers over fresh internet data.
+- **Hybrid Retrieval:** Combined Dense (Chroma) and Sparse (BM25) search using Reciprocal Rank Fusion (RRF) and Cross-Encoder reranking.
+- **Semantic Chunking:** Advanced document segmentation using embeddings to find natural break points.
+- **Context Expansion:** Intelligent context windowing that fetches neighboring chunks to provide the LLM with full document context.
+- **Citation Validation:** Rigorous post-generation checks to ensure every claim is backed by a specific source.
+- **Answer-Level Evaluation:** Built-in scripts to measure groundedness and correctness, moving beyond "it looks good" to data-driven improvement.
 
-This project represents how I think about AI systems in practice: retrieval quality, observability, reliability, and user workflow all matter.
+## Architecture
 
-## Demo
+Rabbook uses a hierarchical evidence strategy to ensure accuracy and privacy:
 
-Add a screenshot or short UI capture to `docs/images/rabbook-demo.png` and the README will render it here.
+1. **Local Search:** Fast and private search over your uploaded documents.
+2. **Refined Retry:** If initial results are weak, the agent rewrites the query to try and find better local evidence.
+3. **Global Research:** If local data fails, the agent searches the web, ingests the content into the vector store, and performs a final RAG pass over the combined knowledge.
 
-![Rabbook demo](docs/images/rabbook-demo.png)
+### Agentic Flow (LangGraph)
+
+```mermaid
+flowchart TD
+    Start((User Query)) --> Prepare[Prepare Input & Metadata Filters]
+    Prepare --> Retrieve[Hybrid Retrieval: Dense + Sparse]
+    Retrieve --> Expand[Context Window Expansion]
+    Expand --> Ground[Grounding Gate: Evaluate Evidence]
+    
+    Ground --> Decide{Decide Next Action}
+    
+    Decide -- "Grounding Passed" --> Generate[Generate Answer with Citations]
+    Decide -- "Weak Evidence (Retry < 2)" --> Refine[Refine Query Node]
+    Decide -- "No Local Evidence / Cap Reached" --> Research[Web Research Agent Node]
+    
+    Refine -->|Loop back| Retrieve
+    Research -->|Ingest Web Content| Retrieve
+    
+    Generate --> Finalize[Finalize & Save History]
+    Finalize --> End((Response))
+    
+    style Research fill:#f96,stroke:#333,stroke-width:2px
+    style Refine fill:#bbf,stroke:#333,stroke-width:2px
+    style Ground fill:#dfd,stroke:#333,stroke-width:2px
+```
 
 ## Core Features
 
 - Ask questions over PDF, TXT, and persisted URL-imported content
-- Import a single web page and store it as a durable local source
+- Autonomous web fallback for questions beyond your local library
 - View retrieved chunks, retrieval scores, rerank scores, and debug flow
 - Filter retrieval by document, file type, and page range
 - Manage a document library directly from the UI
@@ -36,91 +62,39 @@ Add a screenshot or short UI capture to `docs/images/rabbook-demo.png` and the R
 - Export notes, history, and answers as Markdown or JSON
 - Run maintenance actions such as runtime refresh, registry rebuild, and upload re-ingestion
 
-## Retrieval Pipeline
-
-Rabbook uses a multi-stage retrieval pipeline instead of a single similarity search:
-
-1. Query transformation can generate sub-queries for broader recall.
-2. Dense retrieval and BM25 retrieval gather candidate chunks.
-3. Reciprocal Rank Fusion merges those ranked candidate sets.
-4. A cross-encoder reranker reorders candidates against the original user question.
-5. Context window expansion adds neighboring chunks from the same document.
-6. The final answer is generated with numbered citations.
-7. A grounding gate blocks unsupported answers and returns a safe fallback when evidence is too weak.
-
-## System Flow
-
-```mermaid
-flowchart TD
-    A[User uploads file or imports URL] --> B[Ingestion pipeline]
-    B --> C[Metadata enrichment]
-    C --> D[Semantic chunking]
-    D --> E[Embeddings + Chroma storage]
-    D --> F[Chunk registry]
-    F --> G[BM25 index]
-
-    H[User question] --> I[Optional query transformation]
-    I --> J[Dense retrieval from Chroma]
-    I --> K[BM25 retrieval]
-    J --> L[Reciprocal Rank Fusion]
-    K --> L
-    L --> M[Cross-encoder reranker]
-    M --> N[Context window expansion]
-    F --> N
-    N --> O[Prompt with numbered sources]
-    O --> P[LLM answer generation]
-    P --> Q[Citation validation and repair]
-    Q --> R[Grounded answer or safe fallback]
-    R --> S[UI response, history, notes, export]
-```
-
 ## Tech Stack
 
-- FastAPI for the web application
-- Jinja2 templates and custom CSS for the UI
-- Chroma as the vector database
-- Hugging Face embeddings with `sentence-transformers/all-MiniLM-L6-v2`
-- `rank-bm25` for sparse retrieval
-- LangChain `SemanticChunker` for chunking
-- Cross-encoder reranking with `cross-encoder/ms-marco-MiniLM-L-6-v2`
-- Groq-hosted LLM inference for answer generation
+- **Backend:** FastAPI, Python
+- **Orchestration:** LangGraph (Agentic Loops)
+- **Vector DB:** Chroma
+- **Embeddings:** Hugging Face `all-MiniLM-L6-v2`
+- **Sparse Retrieval:** Rank-BM25
+- **Reranking:** Cross-Encoder `ms-marco-MiniLM-L-6-v2`
+- **LLM:** Groq-hosted Llama 3.1 or Google Gemini
+- **Frontend:** Jinja2 templates, Vanilla CSS
 
-## Project Structure
+## Installation & Setup
 
-```text
-rabbook/
-├── main.py
-├── ingest_docs.py
-├── evaluate_retrieval.py
-├── app/
-├── core/
-├── rag/
-├── templates/
-├── static/
-├── tests/
-├── data/
-├── requirements.txt
-└── README.md
-```
+1. **Clone and Setup environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
-## Run Locally
+2. **Configure API Keys:**
+   Create a `.env` file (see `.env.example`):
+   ```bash
+   GEMINI_KEY=your_key_here
+   RABBOOK_ENABLE_LANGGRAPH_AGENT=true
+   RABBOOK_ENABLE_RESEARCH_FALLBACK=true
+   ```
 
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-python main.py
-```
-
-Open `http://127.0.0.1:6001`.
-
-Useful commands:
-
-```bash
-python ingest_docs.py
-python evaluate_retrieval.py
-```
+3. **Run the application:**
+   ```bash
+   python main.py
+   ```
+   Open `http://127.0.0.1:6001`.
 
 ## Evaluation
 

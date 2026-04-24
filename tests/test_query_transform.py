@@ -3,6 +3,7 @@ import unittest
 from rag.retrieve import (
     QueryRewriteResult,
     generate_sub_queries,
+    is_valid_retrieval_query,
     parse_structured_sub_queries,
     parse_sub_queries_json,
 )
@@ -34,7 +35,7 @@ class FakeStructuredTransformer:
         self.structured_response = structured_response
         self.prompts = []
 
-    def with_structured_output(self, schema):
+    def with_structured_output(self, schema, **kwargs):
         self.schema = schema
         return FakeStructuredRunnable(self.structured_response)
 
@@ -136,6 +137,14 @@ Here is the retrieval output:
         self.assertEqual(
             result,
             ["trump background", "trump family", "trump business"],
+        )
+
+    def test_rejects_assistant_style_refusal_text_as_retrieval_query(self):
+        self.assertFalse(
+            is_valid_retrieval_query(
+                'Please provide a specific question or topic you would like me to research.',
+                original_query="hi",
+            )
         )
 
 

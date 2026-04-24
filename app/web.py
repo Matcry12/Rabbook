@@ -1,5 +1,6 @@
 import json
 from functools import lru_cache
+from typing import Any
 
 from app.actions import (
     delete_document as run_delete_document,
@@ -40,6 +41,7 @@ from fastapi.templating import Jinja2Templates
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
+from langchain_ollama import ChatOllama
 
 from core.config import (
     DB_DIR,
@@ -47,8 +49,13 @@ from core.config import (
     DEFAULT_BM25_CANDIDATE_K,
     DEFAULT_ENABLE_QUERY_TRANSFORM,
     ENABLE_LANGGRAPH_AGENT,
+    DEFAULT_ENABLE_RESEARCH_FALLBACK,
     DEFAULT_GROUNDED_FALLBACK_MESSAGE,
     DEFAULT_LLM_MODEL,
+    DEFAULT_LLM_PROVIDER,
+    OLLAMA_BASE_URL,
+    OLLAMA_NUM_GPU,
+    OLLAMA_THINKING_MODE,
     DEFAULT_MAX_EXPANDED_CHUNKS,
     DEFAULT_MIN_GROUNDED_CHUNKS,
     DEFAULT_MIN_GROUNDED_RERANK_SCORE,
@@ -77,26 +84,83 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 load_dotenv()  # Load environment variables from .env file at startup
 
+
+class PromptTransformRunnable:
+    def __init__(self, runnable, transform_prompt):
+        self._runnable = runnable
+        self._transform_prompt = transform_prompt
+
+    def invoke(self, input_value, *args, **kwargs):
+        return self._runnable.invoke(self._transform_prompt(input_value), *args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._runnable, name)
+
+
+class GemmaPromptWrapper:
+    def __init__(self, llm, model_name):
+        self._llm = llm
+        self._model_name = model_name or ""
+
+    def _transform_prompt(self, input_value: Any):
+        if not isinstance(input_value, str):
+            return input_value
+        if "gemma" not in self._model_name.lower():
+            return input_value
+        if "<thought off>" in input_value.lower():
+            return input_value
+        return f"<thought off>\n{input_value}"
+
+    def invoke(self, input_value, *args, **kwargs):
+        return self._llm.invoke(self._transform_prompt(input_value), *args, **kwargs)
+
+    def with_structured_output(self, *args, **kwargs):
+        runnable = self._llm.with_structured_output(*args, **kwargs)
+        return PromptTransformRunnable(runnable, self._transform_prompt)
+
+    def __getattr__(self, name):
+        return getattr(self._llm, name)
+
 @lru_cache(maxsize=1)
 def get_embeddings() -> HuggingFaceEmbeddings:
     return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 
 @lru_cache(maxsize=1)
-def get_llm() -> ChatGoogleGenerativeAI:
-    api_key = get_google_api_key()
-    if not api_key:
-        raise RuntimeError("GEMINI_KEY is missing. Add it to .env before starting the app.")
+def get_llm():
+    if DEFAULT_LLM_PROVIDER == "groq":
+        llm = ChatGroq(
+            model=DEFAULT_LLM_MODEL,
+            temperature=0.3,
+        )
+        return GemmaPromptWrapper(llm, DEFAULT_LLM_MODEL)
+    elif DEFAULT_LLM_PROVIDER == "gemini":
+        api_key = get_google_api_key()
+        if not api_key:
+            raise RuntimeError("GEMINI_KEY is missing in .env.")
+        llm = ChatGoogleGenerativeAI(
+            model=DEFAULT_LLM_MODEL,
+            google_api_key=api_key,
+            temperature=0.3,
+        )
+        return GemmaPromptWrapper(llm, DEFAULT_LLM_MODEL)
+    elif DEFAULT_LLM_PROVIDER == "ollama":
+        # num_gpu: 0 forces CPU, -1 (default) uses GPU if available
+        llm = ChatOllama(
+            model=DEFAULT_LLM_MODEL,
+            base_url=OLLAMA_BASE_URL,
+            num_gpu=OLLAMA_NUM_GPU,
+            temperature=0.3,
+        )
+        return GemmaPromptWrapper(llm, DEFAULT_LLM_MODEL)
+    else:
+        raise ValueError(f"Unsupported LLM provider: {DEFAULT_LLM_PROVIDER}")
 
-    return ChatGroq(
-        model=DEFAULT_LLM_MODEL,
-        temperature=0.3,
-    )
 
-
-@lru_cache(maxsize=1)
-def get_reranker():
-    return load_reranker(DEFAULT_RERANK_MODEL)
+def strip_thinking(text: str) -> str:
+    """Removes <think>...</think> blocks from LLM responses."""
+    import re
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
 
 def get_bm25_index():
@@ -141,7 +205,7 @@ def render_home(request: Request, **context):
         "error": None,
     }
     page_context.update(context)
-    return templates.TemplateResponse("index.html", page_context)
+    return templates.TemplateResponse(request, "index.html", page_context)
 
 
 def answer_query(
@@ -174,8 +238,14 @@ def answer_query(
         page_end=page_end,
         debug_mode=debug_mode,
         use_langgraph=ENABLE_LANGGRAPH_AGENT,
+        enable_research=DEFAULT_ENABLE_RESEARCH_FALLBACK,
     )
-    return result.answer, result.sources, result.citations, result.debug_data
+    
+    answer = result.answer
+    if DEFAULT_LLM_PROVIDER == "ollama" and not OLLAMA_THINKING_MODE:
+        answer = strip_thinking(answer)
+        
+    return answer, result.sources, result.citations, result.debug_data
 
 
 def get_available_files():
@@ -196,6 +266,11 @@ def get_saved_notes():
 
 def get_history_items():
     return load_history_items()
+
+
+@lru_cache(maxsize=1)
+def get_reranker():
+    return load_reranker(DEFAULT_RERANK_MODEL)
 
 
 @app.get("/", response_class=HTMLResponse)

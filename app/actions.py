@@ -24,9 +24,25 @@ async def save_uploaded_document(document, target_path):
     await document.close()
 
 
+def ingest_saved_document(
+    target_path,
+    *,
+    add_documents_to_vectorstore,
+    embeddings,
+    refresh_runtime_state=None,
+):
+    add_documents_to_vectorstore(str(target_path), embeddings, str(DB_DIR))
+    if refresh_runtime_state is not None:
+        refresh_runtime_state()
+
+
 def ingest_uploaded_document(target_path, *, add_documents_to_vectorstore, get_embeddings, refresh_runtime_state):
-    add_documents_to_vectorstore(str(target_path), get_embeddings(), str(DB_DIR))
-    refresh_runtime_state()
+    ingest_saved_document(
+        target_path,
+        add_documents_to_vectorstore=add_documents_to_vectorstore,
+        embeddings=get_embeddings(),
+        refresh_runtime_state=refresh_runtime_state,
+    )
 
 
 def ingest_url_document(
@@ -38,10 +54,10 @@ def ingest_url_document(
 ):
     payload = fetch_url_content(url)
     saved_path = save_url_import(payload, URL_IMPORT_DIR)
-    ingest_uploaded_document(
+    ingest_saved_document(
         saved_path,
         add_documents_to_vectorstore=add_documents_to_vectorstore,
-        get_embeddings=get_embeddings,
+        embeddings=get_embeddings(),
         refresh_runtime_state=refresh_runtime_state,
     )
     return payload

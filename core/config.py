@@ -20,7 +20,12 @@ STATIC_DIR = BASE_DIR / "static"
 load_dotenv(BASE_DIR / ".env")
 
 SUPPORTED_EXTENSIONS = {".pdf", ".txt"}
+DEFAULT_LLM_PROVIDER = os.getenv("RABBOOK_LLM_PROVIDER", "groq").lower()
 DEFAULT_LLM_MODEL = os.getenv("RABBOOK_LLM_MODEL", "llama-3.1-8b-instant")
+OLLAMA_BASE_URL = os.getenv("RABBOOK_OLLAMA_BASE_URL", "http://localhost:11434")
+# RABBOOK_OLLAMA_NUM_GPU: 0 for CPU, -1 for Auto, 35+ for forcing CUDA/GPU layers
+OLLAMA_NUM_GPU = int(os.getenv("RABBOOK_OLLAMA_NUM_GPU", "-1")) 
+OLLAMA_THINKING_MODE = os.getenv("RABBOOK_OLLAMA_THINKING", "true").lower() == "true"
 DEFAULT_HOST = os.getenv("RABBOOK_HOST", "0.0.0.0")
 DEFAULT_PORT = int(os.getenv("RABBOOK_PORT", "6001"))
 DEFAULT_RETRIEVAL_K = int(os.getenv("RABBOOK_RETRIEVAL_K", "4"))
@@ -48,6 +53,7 @@ DEFAULT_RERANK_MODEL = os.getenv(
     "cross-encoder/ms-marco-MiniLM-L-6-v2",
 )
 ENABLE_LANGGRAPH_AGENT = os.getenv("RABBOOK_ENABLE_LANGGRAPH_AGENT", "false").lower() == "true"
+DEFAULT_ENABLE_RESEARCH_FALLBACK = os.getenv("RABBOOK_ENABLE_RESEARCH_FALLBACK", "false").lower() == "true"
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 URL_IMPORT_DIR.mkdir(parents=True, exist_ok=True)

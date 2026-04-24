@@ -343,6 +343,18 @@
                             {% if debug_data.decision_reason %}
                             <li><strong>Decision Reason:</strong> {{ debug_data.decision_reason }}</li>
                             {% endif %}
+                            {% if debug_data.retry_count %}
+                            <li><strong>Retry Count:</strong> {{ debug_data.retry_count }} / 2</li>
+                            {% endif %}
+                            {% if debug_data.refined_query %}
+                            <li><strong>Refined Query:</strong> <em>{{ debug_data.refined_query }}</em></li>
+                            {% endif %}
+                            {% if debug_data.web_research_performed %}
+                            <li><strong>Web Research:</strong> <span class="badge badge--success">Performed</span></li>
+                            {% endif %}
+                            {% if debug_data.web_docs_ingested is not none %}
+                            <li><strong>Web Docs Ingested:</strong> {{ debug_data.web_docs_ingested }}</li>
+                            {% endif %}
                             <li><strong>Metadata Filter:</strong>
                                 {% if debug_data.metadata_filter %}
                                 file={{ debug_data.metadata_filter.file_name if debug_data.metadata_filter.file_name else 'all' }},
