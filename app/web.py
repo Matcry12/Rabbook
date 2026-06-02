@@ -226,9 +226,8 @@ def answer_query(
         answer = run_tool_agent(
             query,
             llm=get_llm(),
-            vectorstore=get_vectorstore(),
+            embeddings=get_embeddings(),
             reranker=get_reranker(),
-            bm25_index=get_bm25_index(),
         )
         if DEFAULT_LLM_PROVIDER == "ollama" and not OLLAMA_THINKING_MODE:
             answer = strip_thinking(answer)

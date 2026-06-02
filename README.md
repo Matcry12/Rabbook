@@ -1,114 +1,195 @@
-# Rabbook
+# Rabbook — Agentic RAG System
 
-Rabbook is an advanced Retrieval-Augmented Generation (RAG) application for asking questions over personal documents and global web knowledge. I built it as a personal AI engineering project to explore how a real RAG system moves beyond basic vector search into a reliable, agentic, and self-improving product.
+> A production-quality Retrieval-Augmented Generation application built from scratch, featuring a real tool-use agent loop, hybrid retrieval, and a self-expanding knowledge base.
 
-The app supports document upload, URL import, grounded answering with citations, retrieval debugging, document management, chat history, saved notes, and export features.
+![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green?logo=fastapi)
+![LangGraph](https://img.shields.io/badge/LangGraph-Agentic-orange)
+![Tests](https://img.shields.io/badge/Tests-57%20passing-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-## Why This Project Matters
+---
 
-Most beginner RAG projects stop at embedding documents and calling an LLM. Rabbook goes further by adding retrieval quality improvements, agentic self-correction, and autonomous research capabilities:
+## What Makes This Different
 
-- **Agentic RAG (LangGraph):** Moves beyond linear pipelines. Features a self-correcting loop that evaluates retrieval evidence, refines queries when grounding is weak, and handles retries.
-- **Autonomous Research Agent:** A dedicated agent that plans and executes multi-query web searches (via DuckDuckGo) when local documents are insufficient.
-- **Self-Expanding Knowledge Loop:** The Research Agent doesn't just synthesize text; it *ingests* web findings back into the vector store, allowing the RAG pipeline to provide grounded answers over fresh internet data.
-- **Hybrid Retrieval:** Combined Dense (Chroma) and Sparse (BM25) search using Reciprocal Rank Fusion (RRF) and Cross-Encoder reranking.
-- **Semantic Chunking:** Advanced document segmentation using embeddings to find natural break points.
-- **Context Expansion:** Intelligent context windowing that fetches neighboring chunks to provide the LLM with full document context.
-- **Citation Validation:** Rigorous post-generation checks to ensure every claim is backed by a specific source.
-- **Answer-Level Evaluation:** Built-in scripts to measure groundedness and correctness, moving beyond "it looks good" to data-driven improvement.
+Most RAG projects embed documents and call an LLM. Rabbook is built the way production systems are built:
 
-## Architecture
+| What | Why It Matters |
+|------|----------------|
+| **Real tool-use agent loop** | The LLM decides which tool to call each turn — not a hardcoded pipeline. Mirrors how Claude, Codex, and Gemini work. |
+| **7-stage retrieval pipeline** | Dense + sparse fusion → RRF → cross-encoder reranking → context expansion → grounding gate. Each stage is measurable and independently testable. |
+| **Self-expanding knowledge base** | When the agent fetches a web page, it auto-embeds it. Future queries over that content go through the full RAG pipeline — not raw text. |
+| **Multi-provider LLM support** | Groq (Llama), Google Gemini, and local Ollama models (including thinking-mode toggle). Swap providers with a single env var. |
+| **57 unit tests, zero LLM calls** | Full mock coverage across retrieval, agent loop, research graph, and structured output. |
 
-Rabbook uses a hierarchical evidence strategy to ensure accuracy and privacy:
+---
 
-1. **Local Search:** Fast and private search over your uploaded documents.
-2. **Refined Retry:** If initial results are weak, the agent rewrites the query to try and find better local evidence.
-3. **Global Research:** If local data fails, the agent searches the web, ingests the content into the vector store, and performs a final RAG pass over the combined knowledge.
+## Two Agent Modes
 
-### Agentic Flow (LangGraph)
+### Mode 1 — Tool-Use Agent Loop (`agents/tool_agent.py`)
+
+A real agentic loop where the LLM autonomously picks tools until it has enough information to answer. No hardcoded routing.
+
+```
+User query
+    └─▶ LLM decides tool call
+            ├─▶ query_documents  →  hybrid RAG search over local library
+            ├─▶ web_search       →  DuckDuckGo, returns URLs + snippets
+            └─▶ fetch_url        →  crawls page, auto-embeds into Chroma,
+                                    returns "indexed — use query_documents"
+    └─▶ LLM calls query_documents again → hits newly embedded content
+    └─▶ LLM produces final grounded answer
+```
+
+The `fetch_url → embed → query_documents` pattern means every fetched page permanently enriches the local library for future queries.
+
+### Mode 2 — LangGraph RAG Graph (`agents/rag_graph.py`)
+
+A deterministic graph for structured, auditable retrieval with explicit grounding gates.
 
 ```mermaid
 flowchart TD
     Start((User Query)) --> Prepare[Prepare Input & Metadata Filters]
     Prepare --> Retrieve[Hybrid Retrieval: Dense + Sparse]
     Retrieve --> Expand[Context Window Expansion]
-    Expand --> Ground[Grounding Gate: Evaluate Evidence]
-    
+    Expand --> Ground[Grounding Gate]
+
     Ground --> Decide{Decide Next Action}
-    
-    Decide -- "Grounding Passed" --> Generate[Generate Answer with Citations]
-    Decide -- "Weak Evidence (Retry < 2)" --> Refine[Refine Query Node]
-    Decide -- "No Local Evidence / Cap Reached" --> Research[Web Research Agent Node]
-    
-    Refine -->|Loop back| Retrieve
-    Research -->|Ingest Web Content| Retrieve
-    
+
+    Decide -- "Grounded" --> Generate[Generate Answer with Citations]
+    Decide -- "Weak Evidence" --> Refine[Refine Query]
+    Decide -- "No Evidence" --> Research[Web Research Agent]
+
+    Refine -->|retry| Retrieve
+    Research -->|ingest & retry| Retrieve
+
     Generate --> Finalize[Finalize & Save History]
     Finalize --> End((Response))
-    
+
     style Research fill:#f96,stroke:#333,stroke-width:2px
     style Refine fill:#bbf,stroke:#333,stroke-width:2px
     style Ground fill:#dfd,stroke:#333,stroke-width:2px
 ```
 
-## Core Features
+Switch modes with `RABBOOK_ENABLE_TOOL_AGENT=true/false`.
 
-- Ask questions over PDF, TXT, and persisted URL-imported content
-- Autonomous web fallback for questions beyond your local library
-- View retrieved chunks, retrieval scores, rerank scores, and debug flow
-- Filter retrieval by document, file type, and page range
-- Manage a document library directly from the UI
-- Save answers as notes and automatically keep chat history
-- Export notes, history, and answers as Markdown or JSON
-- Run maintenance actions such as runtime refresh, registry rebuild, and upload re-ingestion
+---
+
+## Retrieval Pipeline
+
+Seven stages run in sequence on every query:
+
+```
+1. Query Transform     LLM generates 2–4 sub-queries for broader coverage
+2. Candidate Collection Dense (Chroma) + BM25 results per sub-query, deduplicated
+3. RRF Fusion          Reciprocal Rank Fusion merges the ranked lists
+4. Cross-Encoder Reranking  ms-marco-MiniLM re-scores against the original query
+5. Context Window Expansion  Neighboring chunks added for full document context
+6. Grounding Gate      Rerank score + chunk count gate; blocks hallucination-prone answers
+7. Answer Generation   Structured output with citation repair fallback
+```
+
+---
 
 ## Tech Stack
 
-- **Backend:** FastAPI, Python
-- **Orchestration:** LangGraph (Agentic Loops)
-- **Vector DB:** Chroma
-- **Embeddings:** Hugging Face `all-MiniLM-L6-v2`
-- **Sparse Retrieval:** Rank-BM25
-- **Reranking:** Cross-Encoder `ms-marco-MiniLM-L-6-v2`
-- **LLM:** Groq-hosted Llama 3.1 or Google Gemini
-- **Frontend:** Jinja2 templates, Vanilla CSS
+| Layer | Technology |
+|-------|-----------|
+| Backend | FastAPI, Python 3.13 |
+| Agent Orchestration | LangGraph, LangChain tool-use (`bind_tools`) |
+| Vector Store | ChromaDB |
+| Embeddings | `all-MiniLM-L6-v2` (HuggingFace, local) |
+| Sparse Retrieval | Rank-BM25 |
+| Reranking | `ms-marco-MiniLM-L-6-v2` Cross-Encoder |
+| LLM Providers | Groq (Llama 3.x), Google Gemini, Ollama (local, thinking-mode aware) |
+| Web Crawling | crawl4ai + DuckDuckGo (`ddgs`) |
+| Frontend | Jinja2, Vanilla CSS |
+| Testing | `unittest` + mocks, 57 tests, no real LLM calls |
 
-## Installation & Setup
+---
 
-1. **Clone and Setup environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
+## Project Structure
 
-2. **Configure API Keys:**
-   Create a `.env` file (see `.env.example`):
-   ```bash
-   GEMINI_KEY=your_key_here
-   RABBOOK_ENABLE_LANGGRAPH_AGENT=true
-   RABBOOK_ENABLE_RESEARCH_FALLBACK=true
-   ```
+```
+agents/
+  tool_agent.py       — real tool-use agent loop (the main path)
+  rag_graph.py        — LangGraph deterministic graph
+  research_graph.py   — standalone web research agent
+  services.py         — public API: answer_query(), AnswerResult
+rag/
+  retrieve.py         — full 7-stage retrieval pipeline
+  chunking.py         — semantic chunking (embedding-based split points)
+  ingest.py           — document loading → Chroma + chunk registry
+  web_ingest.py       — URL fetch, crawl, save, web_search
+  registry.py         — chunk registry (O(1) neighbor lookup for context expansion)
+app/
+  web.py              — FastAPI routes, LLM instantiation, provider switching
+  runtime.py          — lazy-load & cache: vectorstore, BM25, registry
+core/
+  config.py           — all env vars with defaults
+```
 
-3. **Run the application:**
-   ```bash
-   python main.py
-   ```
-   Open `http://127.0.0.1:6001`.
+---
+
+## Setup
+
+```bash
+git clone <repo>
+cd rabbook
+
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+cp .env.example .env
+# Add GROQ_API_KEY or GEMINI_KEY
+```
+
+Key `.env` options:
+
+```bash
+RABBOOK_LLM_PROVIDER=groq          # groq | gemini | ollama
+RABBOOK_LLM_MODEL=llama-3.1-8b-instant
+RABBOOK_ENABLE_TOOL_AGENT=true     # real agent loop (recommended)
+RABBOOK_ENABLE_LANGGRAPH_AGENT=true
+RABBOOK_ENABLE_RESEARCH_FALLBACK=false
+RABBOOK_OLLAMA_THINKING=false      # suppress <think> blocks for gemma/deepseek
+```
+
+```bash
+python main.py          # → http://127.0.0.1:6001
+python ingest_docs.py   # embed files from data/uploads/
+python evaluate_retrieval.py  # measure groundedness & correctness
+```
+
+---
+
+## Running Tests
+
+```bash
+python -m pytest tests/ -q
+# 57 passed
+```
+
+All tests use mocks — no API keys, no network, no vectorstore required.
+
+---
 
 ## Evaluation
 
-Rabbook includes an evaluation script for the full RAG flow, not just retrieval in isolation. The evaluation covers:
+`evaluate_retrieval.py` measures the full pipeline end-to-end:
 
-- answer correctness
-- grounded answer behavior
-- safe fallback behavior when evidence is insufficient
+- Answer correctness vs. ground truth
+- Grounded vs. hallucinated answer rate
+- Safe fallback behavior when evidence is insufficient
 
-This makes the project more useful as an engineering artifact because improvements can be measured instead of judged only by intuition.
+Improvements are data-driven, not intuition-based.
+
+---
 
 ## Notes
 
-- Browsers commonly block port `6000`, so the app defaults to `6001`.
-- Uploaded files are stored under `data/uploads/`.
-- URL imports are persisted under `data/uploads/urls/` so they survive re-ingestion.
-- Supported direct-run entrypoints are `main.py`, `ingest_docs.py`, and `evaluate_retrieval.py`.
+- Port defaults to `6001` (browsers commonly block `6000`)
+- Uploaded files: `data/uploads/`
+- URL imports: `data/uploads/urls/` (persisted, re-ingested on restart)
+- Chunk registry: `data/chunk_registry.json` (flat index for O(1) neighbor lookup)
