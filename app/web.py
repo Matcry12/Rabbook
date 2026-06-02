@@ -33,6 +33,7 @@ from app.view_data import (
     get_saved_notes as load_saved_notes,
 )
 from agents.services import answer_query as run_answer_query
+from agents.tool_agent import run_tool_agent
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
@@ -49,6 +50,7 @@ from core.config import (
     DEFAULT_BM25_CANDIDATE_K,
     DEFAULT_ENABLE_QUERY_TRANSFORM,
     ENABLE_LANGGRAPH_AGENT,
+    ENABLE_TOOL_AGENT,
     DEFAULT_ENABLE_RESEARCH_FALLBACK,
     DEFAULT_GROUNDED_FALLBACK_MESSAGE,
     DEFAULT_LLM_MODEL,
@@ -146,12 +148,16 @@ def get_llm():
         return GemmaPromptWrapper(llm, DEFAULT_LLM_MODEL)
     elif DEFAULT_LLM_PROVIDER == "ollama":
         # num_gpu: 0 forces CPU, -1 (default) uses GPU if available
-        llm = ChatOllama(
+        # thinking=False suppresses <think> blocks for models like Gemma 4
+        ollama_kwargs = dict(
             model=DEFAULT_LLM_MODEL,
             base_url=OLLAMA_BASE_URL,
             num_gpu=OLLAMA_NUM_GPU,
             temperature=0.3,
         )
+        if not OLLAMA_THINKING_MODE:
+            ollama_kwargs["thinking"] = False
+        llm = ChatOllama(**ollama_kwargs)
         return GemmaPromptWrapper(llm, DEFAULT_LLM_MODEL)
     else:
         raise ValueError(f"Unsupported LLM provider: {DEFAULT_LLM_PROVIDER}")
@@ -216,6 +222,18 @@ def answer_query(
     page_end="",
     debug_mode=False,
 ):
+    if ENABLE_TOOL_AGENT:
+        answer = run_tool_agent(
+            query,
+            llm=get_llm(),
+            vectorstore=get_vectorstore(),
+            reranker=get_reranker(),
+            bm25_index=get_bm25_index(),
+        )
+        if DEFAULT_LLM_PROVIDER == "ollama" and not OLLAMA_THINKING_MODE:
+            answer = strip_thinking(answer)
+        return answer, [], [], None
+
     result = run_answer_query(
         query,
         vectorstore=get_vectorstore(),
