@@ -37,18 +37,20 @@ class ResearchAgentNodesTests(unittest.TestCase):
         self.assertEqual(len(updated_state["search_queries"]), 2)
         self.assertEqual(updated_state["search_queries"], ["q1", "q2"])
 
+    @patch("agents.research_graph.fetch_urls_parallel")
     @patch("agents.research_graph.web_search")
-    @patch("agents.research_graph.fetch_url_content")
-    def test_execute_search_node_collects_results(self, mock_fetch, mock_search):
+    def test_execute_search_node_collects_results(self, mock_search, mock_fetch_parallel):
         mock_search.return_value = [
             {"url": "http://e1.com", "title": "T1", "snippet": "S1"},
             {"url": "http://e2.com", "title": "T2", "snippet": "S2"}
         ]
-        mock_fetch.return_value = {"page_text": "Full Content"}
-        
+        mock_fetch_parallel.return_value = [
+            {"source_url": "http://e1.com", "page_text": "Full Content"},
+        ]
+
         state = {"search_queries": ["query 1"], "debug_mode": False}
         updated_state = execute_search_node(state)
-        
+
         self.assertEqual(len(updated_state["search_results"]), 2)
         self.assertEqual(updated_state["search_results"][0]["content"], "Full Content")
 

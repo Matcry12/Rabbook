@@ -52,7 +52,7 @@ DEFAULT_RERANK_MODEL = os.getenv(
     "RABBOOK_RERANK_MODEL",
     "cross-encoder/ms-marco-MiniLM-L-6-v2",
 )
-ENABLE_LANGGRAPH_AGENT = os.getenv("RABBOOK_ENABLE_LANGGRAPH_AGENT", "false").lower() == "true"
+ENABLE_LANGGRAPH_AGENT = os.getenv("RABBOOK_ENABLE_LANGGRAPH_AGENT", "true").lower() == "true"
 DEFAULT_ENABLE_RESEARCH_FALLBACK = os.getenv("RABBOOK_ENABLE_RESEARCH_FALLBACK", "false").lower() == "true"
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)

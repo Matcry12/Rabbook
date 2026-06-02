@@ -147,7 +147,7 @@ class Phase2RagGraphTests(unittest.TestCase):
         updated_state = decide_next_action_node(state)
 
         self.assertEqual(updated_state["next_action"], "retry_retrieval")
-        self.assertEqual(updated_state["decision_reason"], "partial_local_evidence")
+        self.assertEqual(updated_state["decision_reason"], "partial_local_evidence_retry_1")
         self.assertEqual(updated_state["debug_data"]["next_action"], "retry_retrieval")
 
     def test_decide_next_action_node_marks_fallback_when_no_local_evidence_exists(self):
@@ -158,7 +158,7 @@ class Phase2RagGraphTests(unittest.TestCase):
         updated_state = decide_next_action_node(state)
 
         self.assertEqual(updated_state["next_action"], "fallback")
-        self.assertEqual(updated_state["decision_reason"], "no_local_evidence")
+        self.assertEqual(updated_state["decision_reason"], "no_evidence_found_research_disabled")
 
     def test_decide_next_action_node_marks_answer_when_grounding_passes(self):
         state = build_initial_graph_state("What is this roadmap about?", debug_mode=True)

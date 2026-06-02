@@ -2,7 +2,7 @@ from typing import Any, TypedDict
 
 from agents.services import ResearchResult
 from rag.retrieve import extract_response_text, generate_sub_queries
-from rag.web_ingest import fetch_url_content, web_search
+from rag.web_ingest import fetch_urls_parallel, web_search
 from rag.notes import save_note
 
 try:
@@ -64,16 +64,13 @@ def execute_search_node(state: ResearchGraphState) -> ResearchGraphState:
         updated_state["error"] = "no_search_results"
         return updated_state
 
-    # Fetch full content only for the top 3 results to keep context lean
+    # Fetch full content for the top 3 results in parallel
+    top_urls = [res["url"] for res in all_results[:3]]
+    print(f"[Research Agent] Fetching {len(top_urls)} URL(s) in parallel")
+    fetched = {p["source_url"]: p["page_text"] for p in fetch_urls_parallel(top_urls)}
     for res in all_results[:3]:
-        try:
-            print(f"[Research Agent] Fetching content for: {res['url']}")
-            content_payload = fetch_url_content(res["url"])
-            res["content"] = content_payload["page_text"]
-            print(f"[Research Agent] Fetch SUCCESS for: {res['url']} | chars={len(res['content'])}")
-        except Exception as exc:
-            print(f"[Research Agent] Fetch FAILED for: {res['url']} | using snippet fallback | error={exc}")
-            res["content"] = res["snippet"]
+        res["content"] = fetched.get(res["url"]) or res["snippet"]
+        print(f"[Research Agent] Content for {res['url']}: chars={len(res['content'])}")
 
     updated_state["search_results"] = all_results
     print(f"[Research Agent] Search execution complete | unique results={len(all_results)}")
