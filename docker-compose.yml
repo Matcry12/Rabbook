@@ -1,0 +1,16 @@
+services:
+  rabbook:
+    build: .
+    ports:
+      - "6001:6001"
+    volumes:
+      - ./data:/app/data          # persist vectorstore, uploads, notes, history
+      - hf_cache:/root/.cache/huggingface  # persist HuggingFace model cache
+    env_file:
+      - .env
+    environment:
+      RABBOOK_HOST: "0.0.0.0"
+      RABBOOK_PORT: "6001"
+
+volumes:
+  hf_cache:

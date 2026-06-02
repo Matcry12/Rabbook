@@ -1,0 +1,16 @@
+.env
+__pycache__
+*.py[cod]
+*.pyo
+.pytest_cache
+.mypy_cache
+.DS_Store
+venv
+.git
+.omc
+.codex
+docs
+data/chroma_db
+data/uploads
+data/*.json
+tests/retrieved_docs.json

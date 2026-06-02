@@ -18,3 +18,5 @@ uvicorn
 ddgs
 crawl4ai
 trafilatura
+ragas
+datasets

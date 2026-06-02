@@ -6,6 +6,8 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green?logo=fastapi)
 ![LangGraph](https://img.shields.io/badge/LangGraph-Agentic-orange)
 ![Tests](https://img.shields.io/badge/Tests-57%20passing-brightgreen)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)
+![RAGAS](https://img.shields.io/badge/Eval-RAGAS-purple)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ---
@@ -133,6 +135,20 @@ core/
 
 ## Setup
 
+### Docker (recommended)
+
+```bash
+cp .env.example .env
+# Add GROQ_API_KEY or GEMINI_KEY
+
+docker compose up --build
+# → http://localhost:6001
+```
+
+The image pre-downloads embedding and reranking models at build time so the first query is instant. The `data/` directory is mounted as a volume — documents and chat history persist across restarts.
+
+### Local
+
 ```bash
 git clone <repo>
 cd rabbook
@@ -159,7 +175,6 @@ RABBOOK_OLLAMA_THINKING=false      # suppress <think> blocks for gemma/deepseek
 ```bash
 python main.py          # → http://127.0.0.1:6001
 python ingest_docs.py   # embed files from data/uploads/
-python evaluate_retrieval.py  # measure groundedness & correctness
 ```
 
 ---
@@ -177,13 +192,30 @@ All tests use mocks — no API keys, no network, no vectorstore required.
 
 ## Evaluation
 
-`evaluate_retrieval.py` measures the full pipeline end-to-end:
+Two evaluation scripts measure different layers of quality:
 
-- Answer correctness vs. ground truth
+**Custom pipeline evaluation** (`evaluate_retrieval.py`) — fast, no extra LLM calls:
+- Answer correctness against expected concepts
 - Grounded vs. hallucinated answer rate
 - Safe fallback behavior when evidence is insufficient
 
-Improvements are data-driven, not intuition-based.
+**RAGAS evaluation** (`evaluate_ragas.py`) — industry-standard RAG metrics:
+- **Faithfulness**: is the answer faithful to the retrieved context? (detects hallucination)
+- **Answer Relevancy**: does the answer actually address the question?
+
+```bash
+python evaluate_retrieval.py   # custom keyword-match evaluation
+python evaluate_ragas.py       # RAGAS faithfulness + answer relevancy
+```
+
+**Scores** (RAG: Ollama `gemma4:e2b` · Evaluator: Gemini `gemini-3.1-flash-lite` · 20 questions):
+
+| Metric | Score | Meaning |
+|--------|-------|---------|
+| Faithfulness | **1.000** | every answer claim is grounded in retrieved context |
+| Answer Relevancy | **0.956** | answers directly address the question |
+
+Adding `"ground_truth"` to `tests/eval_question.json` unlocks Context Precision and Context Recall metrics.
 
 ---
 
