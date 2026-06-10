@@ -1,0 +1,1276 @@
+[
+  {
+    "case_no": 1,
+    "question": "Sam Mendes and Ruby Yang share what profession?",
+    "ground_truth": "filmmaker.",
+    "expected_behavior": "answer",
+    "answer": "Sam Mendes and Ruby Yang are both filmmakers/directors.\n\n*   **Ruby Yang** is a Chinese American filmmaker (Source [1]).\n*   **Samuel Alexander Mendes** (often referred to as Sam Mendes) is an English stage and film director (Source [2]).\n\nThey share the profession of **filmmaker/director**.",
+    "error": null,
+    "elapsed_sec": 23.3,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 2,
+    "question": "What program responsible for the Health Insurance Portability and Accountability Act works with AHCCS?",
+    "ground_truth": "Centers for Medicare and Medicaid Services",
+    "expected_behavior": "answer",
+    "answer": "The program responsible for working with AHCCS (the Arizona Health Care Cost Containment System) is the Centers for Medicare & Medicaid Services (CMS). CMS administers Medicaid and works in partnership with state governments to administer health insurance portability standards, and it also has responsibilities regarding administrative simplification standards from the Health Insurance Portability and Accountability Act of 1996 (HIPAA).",
+    "error": null,
+    "elapsed_sec": 12.3,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 3,
+    "question": "The 1997–98 UCLA Bruins men's basketball team lost to what team in the sweet sixteen match?",
+    "ground_truth": "The 1997–98 Kentucky Wildcats men's basketball team",
+    "expected_behavior": "answer",
+    "answer": "The 1997–98 UCLA Bruins men's basketball team lost to the Kentucky Wildcats in the sweet sixteen match.",
+    "error": null,
+    "elapsed_sec": 6.6,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 4,
+    "question": "What do a Flaming beverage and a Gin and tonic have in common?",
+    "ground_truth": "cocktails",
+    "expected_behavior": "answer",
+    "answer": "A flaming beverage and a Gin and Tonic have in common that they both involve alcohol, as the first is described as containing \"flammable, high-proof alcohol\" ignited prior to consumption, while the second is a cocktail made with gin.",
+    "error": null,
+    "elapsed_sec": 7.5,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 5,
+    "question": "How many episodes were in the 23rd season of a Fox network show which, in it's twenty-second season, aired it's twenty-first episode which was written by John Frink and directed by Bob Anderson.",
+    "ground_truth": "22 episodes.",
+    "expected_behavior": "answer",
+    "answer": "There were 22 episodes in the 23rd season of *The Simpsons*.",
+    "error": null,
+    "elapsed_sec": 12.2,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 6,
+    "question": "Were both Roger Donaldson and André Cayatte french filmmakers?",
+    "ground_truth": "no",
+    "expected_behavior": "answer",
+    "answer": "No, not both. André Cayatte was a French filmmaker, but Roger Donaldson is an Australian-born New Zealand film director.",
+    "error": null,
+    "elapsed_sec": 23.9,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 7,
+    "question": "What institution does 2017 Texas Tech Red Raiders baseball team and Dan Law Field at Rip Griffin Park have in common?",
+    "ground_truth": "Texas Tech University",
+    "expected_behavior": "answer",
+    "answer": "The institution that the 2017 Texas Tech Red Raiders baseball team and Dan Law Field at Rip Griffin Park have in common is **Texas Tech University**.",
+    "error": null,
+    "elapsed_sec": 7.6,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 8,
+    "question": "What CBS-affiliated station serves Pontotoc County, Oklahoma?",
+    "ground_truth": "KXII",
+    "expected_behavior": "answer",
+    "answer": "Based on the information available, there is no specific CBS-affiliated station explicitly stated as serving Pontotoc County, Oklahoma. While local documents mention KXII as a CBS-affiliated television station licensed to Sherman, Texas, it serves the Ada–Sherman media market and maintains facilities in rural northeastern Marshall County, Oklahoma.",
+    "error": null,
+    "elapsed_sec": 18.5,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 9,
+    "question": "In 1632, where was one of the most highly acclaimed English architects born?",
+    "ground_truth": "East Knoyle",
+    "expected_behavior": "answer",
+    "answer": "Christopher Wren, one of the most highly acclaimed English architects in history, was born in East Knoyle, Wiltshire.",
+    "error": null,
+    "elapsed_sec": 12.2,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 10,
+    "question": "In what year was the singer who popularized \"I'll Keep the Lovelight Burning\" born?",
+    "ground_truth": "1927",
+    "expected_behavior": "answer",
+    "answer": "The singer who popularized \"I'll Keep the Lovelight Burning,\" Patti Page, was born in 1927.",
+    "error": null,
+    "elapsed_sec": 36.6,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "fetch_url",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 11,
+    "question": "What year was the film \"Mom\" released, starring the voice of Shashaa Tirupati?",
+    "ground_truth": "2017",
+    "expected_behavior": "answer",
+    "answer": "Yes, the film \"Mom\" was released in 2017.",
+    "error": null,
+    "elapsed_sec": 27.0,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 12,
+    "question": "Where did Otto von Bismarck and Ludwig Friedrich Leopold von Gerlach originate? ",
+    "ground_truth": "Prussia",
+    "expected_behavior": "answer",
+    "answer": "Otto von Bismarck was born into a noble Junker family, the House of Bismarck (Source [5]). Ludwig Friedrich Leopold von Gerlach was the brother of Ernst Ludwig von Gerlach (Source [4]).",
+    "error": null,
+    "elapsed_sec": 8.5,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 13,
+    "question": "The American Sweetgum is the hostplant of what kind of bug?",
+    "ground_truth": "moth",
+    "expected_behavior": "answer",
+    "answer": "The American Sweetgum is the hostplant of *Phyllocnistis liquidambarisella*, which is a species of moth from the Gracillariidae family.",
+    "error": null,
+    "elapsed_sec": 9.6,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 14,
+    "question": "Where was the artist behind \"Shit\" born and raised?",
+    "ground_truth": "Atlanta, Georgia",
+    "expected_behavior": "answer",
+    "answer": "The artist behind \"Shit,\" Future (Nayvadius DeMun Wilburn), was born and raised in Atlanta, Georgia.",
+    "error": null,
+    "elapsed_sec": 10.0,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 15,
+    "question": "When did the UVF Mid-Ulster Brigade conducted the attack The Miami Showband killings?",
+    "ground_truth": "31 July 1975",
+    "expected_behavior": "answer",
+    "answer": "The UVF Mid-Ulster Brigade conducted the attack on The Miami Showband on July 31, 1975.",
+    "error": null,
+    "elapsed_sec": 8.0,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 16,
+    "question": "What did Karan Kapoor's maternal grandfather deliver?",
+    "ground_truth": "Shakespeare performances",
+    "expected_behavior": "answer",
+    "answer": "The provided documents do not contain information about what Karan Kapoor's maternal grandfather delivered.",
+    "error": null,
+    "elapsed_sec": 5.3,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 17,
+    "question": "Who wrote Tom Vaughan's popular 2008 film?",
+    "ground_truth": "Dana Fox",
+    "expected_behavior": "answer",
+    "answer": "Dana Fox wrote Tom Vaughan's popular 2008 film, *What Happens in Vegas*.",
+    "error": null,
+    "elapsed_sec": 10.6,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 18,
+    "question": "What New York city is 60 miles northwest of the Glen Iris Inn?",
+    "ground_truth": "Buffalo",
+    "expected_behavior": "answer",
+    "answer": "Based on the documents and web search results, there is no direct information stating which New York city is exactly 60 miles northwest of the Glen Iris Inn.\n\nThe local documents mention:\n*   The Glenmere mansion is approximately 50 miles northwest of New York City.\n*   Idylease is located 30 miles northwest from New York City.\n*   Brookhaven National Laboratory is approximately 60 miles east of New York City.\n\nA web search result provided directions from Buffalo (approx. 60 miles) to the Glen Iris Inn, but did not confirm this distance or direction as \"northwest.\"",
+    "error": null,
+    "elapsed_sec": 28.0,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 19,
+    "question": "George Gershwin is an American Composer and Judith Weir is a composer from which country?",
+    "ground_truth": "a British composer",
+    "expected_behavior": "answer",
+    "answer": "Judith Weir is a British composer.",
+    "error": null,
+    "elapsed_sec": 6.8,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 20,
+    "question": "What studio album did Kanye West record with Roc-A-Fella Records and soul singer Dwele?",
+    "ground_truth": "My Beautiful Dark Twisted Fantasy",
+    "expected_behavior": "answer",
+    "answer": "Kanye West recorded the song \"Power\" from his fifth studio album, *My Beautiful Dark Twisted Fantasy*, which was released in 2010 by Roc-A-Fella Records and features additional vocals by soul singer Dwele.",
+    "error": null,
+    "elapsed_sec": 10.0,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 21,
+    "question": "Arbutus and Aspidistra are what types of plants?",
+    "ground_truth": "flowering plants",
+    "expected_behavior": "answer",
+    "answer": "Based on the documents:\n\n*   **Arbutus** is a genus of 11 accepted species of flowering plants in the family Ericaceae, native to warm temperate regions of the Mediterranean, western Europe, the Canary Islands (Teneriffa) and North America.\n*   **Aspidistra** is a genus of flowering plants in the family Asparagaceae, subfamily Nolinoideae, native to eastern and southeastern Asia, particularly China and Vietnam.",
+    "error": null,
+    "elapsed_sec": 8.0,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 22,
+    "question": "Did Greg Costikyan have the same profession as John Dolmayan?  ",
+    "ground_truth": "no",
+    "expected_behavior": "answer",
+    "answer": "Greg Costikyan is an American game designer and science fiction writer (Source [1]). John Dolmayan is a Lebanese-born Armenian–American songwriter and drummer (Source [2]). Therefore, they do not have the same profession.",
+    "error": null,
+    "elapsed_sec": 6.6,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 23,
+    "question": "How many chapters does Yōko Shōji's most famous manga have?",
+    "ground_truth": "24",
+    "expected_behavior": "answer",
+    "answer": "Yōko Shōji's most famous manga is \"Seito Shokun!\" which was published in 24 tankōbon by Kodansha between February 1978 and June 1985.",
+    "error": null,
+    "elapsed_sec": 20.7,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 24,
+    "question": "Who is one other client that is represented by the same person that also represents a barrister at Doughty Street Chambers?",
+    "ground_truth": "Angelina Jolie",
+    "expected_behavior": "answer",
+    "answer": "Amal Clooney is a barrister at Doughty Street Chambers who represents Julian Assange.",
+    "error": null,
+    "elapsed_sec": 15.3,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 25,
+    "question": "Which genus is native to arid or semi-desert areas, Alopecurus or Echeveria?",
+    "ground_truth": "Echeveria",
+    "expected_behavior": "answer",
+    "answer": "The genus *Echeveria* is native to semi-desert areas of Central America, Mexico, and northwestern South America. The genus *Alopecurus* is common across temperate and subtropical parts of Eurasia, northern Africa, and the Americas.",
+    "error": null,
+    "elapsed_sec": 7.1,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 26,
+    "question": "Who was the director of the 1987 American psychological thriller film in which the actor, who played Bob Charles in \"Not Necessarily the News\", appeared?",
+    "ground_truth": "Adrian Lyne",
+    "expected_behavior": "answer",
+    "answer": "The director of the 1987 American psychological thriller film *Fatal Attraction* (in which Matthew Perry appeared) was Adrian Lyne.",
+    "error": null,
+    "elapsed_sec": 34.6,
+    "tools": [
+      "web_search",
+      "web_search",
+      "web_search",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 27,
+    "question": "Elizabeth Austin wrote for a fitness magazine founded by who?",
+    "ground_truth": "Christine MacIntyre",
+    "expected_behavior": "answer",
+    "answer": "Elizabeth Austin has written for several magazines, including \"Shape\". The document states that *Shape* is a monthly English language fitness magazine started by Weider Publications in 1981, founded by Christine MacIntyre.",
+    "error": null,
+    "elapsed_sec": 9.8,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 28,
+    "question": "Jean-Paul Sartre or George Bernard Shaw  have more influence on turn of the century literature?",
+    "ground_truth": "George Bernard Shaw",
+    "expected_behavior": "answer",
+    "answer": "Based on the information available, there is no direct evidence provided by the search results or local documents to determine whether Jean-Paul Sartre or George Bernard Shaw had more influence on turn of the century literature.\n\nThe local documents provide biographical context:\n*   **George Bernard Shaw** was an Irish playwright and critic whose influence extended from the 1880s, and he became the leading dramatist of his generation.\n*   **Jean-Paul Sartre** was a French philosopher, playwright, novelist, and literary critic who was a key figure in existentialism.\n\nHowever, no evidence is present to compare the scope or magnitude of their respective influences on that specific period.",
+    "error": null,
+    "elapsed_sec": 35.6,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 29,
+    "question": "Which name adopted by African-American activist Allen Donaldson co-found Black Power movement of the 1960s and 1970s",
+    "ground_truth": "Hakim Abdullah Jamal",
+    "expected_behavior": "answer",
+    "answer": "The name adopted by African-American activist Allen Donaldson was Hakim Abdullah Jamal.",
+    "error": null,
+    "elapsed_sec": 7.6,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 30,
+    "question": "Which two teams did the the head coach of The 2007 San Diego State Aztecs play for professionally?",
+    "ground_truth": "Detroit Lions and the Los Angeles Rams",
+    "expected_behavior": "answer",
+    "answer": "The head coach of the 2007 San Diego State Aztecs, Chuck Long, played professionally for the Detroit Lions and the Los Angeles Rams.",
+    "error": null,
+    "elapsed_sec": 18.4,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 31,
+    "question": "Cowie Castle at Stonehaven, and Allardice Castle near Inverbervie, are part of a coastal chain of castles in Scotland overlooking which sea?",
+    "ground_truth": "North Sea",
+    "expected_behavior": "answer",
+    "answer": "The coastal chain of castles in Scotland, including Cowie Castle at Stonehaven and Allardice Castle near Inverbervie, overlooks the **North Sea**.",
+    "error": null,
+    "elapsed_sec": 8.1,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 32,
+    "question": "What were the nicknames for the companion of Nuna?",
+    "ground_truth": "white fox, polar fox, or snow fox",
+    "expected_behavior": "answer",
+    "answer": "I do not have enough information to tell you what the nicknames for the companion of Nuna were.",
+    "error": null,
+    "elapsed_sec": 14.3,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 33,
+    "question": "What was the first name of the wife of the namesake of the high school located at 123 Coles Street in Jersey City?",
+    "ground_truth": "Cheryl",
+    "expected_behavior": "answer",
+    "answer": "The namesake of the high school located at 123 Coles Street in Jersey City is Dr. Ronald E. McNair. His wife's first name was Cheryl.",
+    "error": null,
+    "elapsed_sec": 18.9,
+    "tools": [
+      "web_search",
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 34,
+    "question": "Are Control Room and Meeting Resistance both documentary films that involve Iraq?",
+    "ground_truth": "yes",
+    "expected_behavior": "answer",
+    "answer": "Yes, both *Meeting Resistance* and *Control Room* are documentary films that involve Iraq.\n\n*   **Meeting Resistance** is a 2007 documentary film about the Iraq War, presenting the views of eleven Iraqi resistance fighters in Baghdad.\n*   **Control Room** is a 2004 documentary film about Al Jazeera and its relations with the US Central Command (CENTCOM), as well as other news organizations that covered the 2003 invasion of Iraq.",
+    "error": null,
+    "elapsed_sec": 10.7,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 35,
+    "question": "Are both Adolfo Bioy Casares and James Norman Hall Argentinian authors?",
+    "ground_truth": "no",
+    "expected_behavior": "answer",
+    "answer": "No, only Adolfo Bioy Casares was an Argentinian author. Adolfo Bioy Casares was an Argentine fiction writer, journalist, and translator. James Norman Hall was an American writer best known for *The Bounty Trilogy*.",
+    "error": null,
+    "elapsed_sec": 16.7,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 36,
+    "question": "How many movies did the \"Comic Book Villains\" star born on march 20,1970 apprear in since the early 1990s?",
+    "ground_truth": "over sixty films",
+    "expected_behavior": "answer",
+    "answer": "Michael David Rapaport, born on March 20, 1970, has appeared in over sixty films since the early 1990s.",
+    "error": null,
+    "elapsed_sec": 15.5,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 37,
+    "question": "J. Searle Dawley and Ken Annakin were both directors of what?",
+    "ground_truth": "Kenneth Cooper \"Ken\" Annakin, OBE (10 August 1914 – 22 April 2009) was a prolific English film director.",
+    "expected_behavior": "answer",
+    "answer": "Based on the information found, J. Searle Dawley was an American director and screenwriter who directed 149 films between 1907 and 1926. Ken Annakin was a prolific English film director.\n\nThe search results do not provide specific evidence of a single organization that both J. Searle Dawley and Ken Annakin were directors of together.",
+    "error": null,
+    "elapsed_sec": 22.3,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 38,
+    "question": "What star if the Burbs was Canadian?",
+    "ground_truth": "Richard \"Rick\" Ducommun",
+    "expected_behavior": "answer",
+    "answer": "The film *The 'Burbs* (1989) starred Tom Hanks and Carrie Fisher.",
+    "error": null,
+    "elapsed_sec": 26.1,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 39,
+    "question": "What characteristic meaning it's transferable between species, does monkeypox and cowpox virus both share?",
+    "ground_truth": "zoonotic",
+    "expected_behavior": "answer",
+    "answer": "The characteristic that means it's transferable between species that both monkeypox and cowpox viruses share is being **zoonotic**, meaning they are transferable between species, such as from animal to human.",
+    "error": null,
+    "elapsed_sec": 8.1,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 40,
+    "question": "In between The Bears and I and Oceans which was released on July 31, 1974, by Buena Vista Distribution?",
+    "ground_truth": "The Bears and I",
+    "expected_behavior": "answer",
+    "answer": "Based on the provided documents, one film was released on July 31, 1974, by Buena Vista Distribution. One of the films mentioned is *The Bears and I*, which is a 1974 American drama film directed by Bernard McEveety and written by John Whedon.\n\nHowever, the documents do not provide information about a second film titled \"I Oceans\" or confirm if there is another film released between them on that date.",
+    "error": null,
+    "elapsed_sec": 27.1,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 41,
+    "question": " Worldview Entertainment is an American independent motion picture company that produced a 2015 mystery thriller film based on a novel by who?",
+    "ground_truth": "Tom Rob",
+    "expected_behavior": "answer",
+    "answer": "Worldview Entertainment produced a 2015 mystery thriller film based on a novel by Tom Rob Smith.",
+    "error": null,
+    "elapsed_sec": 5.3,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 42,
+    "question": "Which show was Andrew \"Andy\" Spade's brother in n the 1990s?",
+    "ground_truth": "\"Saturday Night Live\"",
+    "expected_behavior": "answer",
+    "answer": "Based on the information available, Andrew \"Andy\" Spade is the brother of actor/comedian David Spade. While David Spade was active as a cast member on \"Saturday Night Live\" during the 1990s, the documents do not specify which show Andrew's brother was in during that time.",
+    "error": null,
+    "elapsed_sec": 20.9,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 43,
+    "question": "In what city did Jack J. Stephans coach from 1979 to 1980?",
+    "ground_truth": "New York City",
+    "expected_behavior": "answer",
+    "answer": "Jack J. Stephans coached from 1979 to 1980 at Fordham University.",
+    "error": null,
+    "elapsed_sec": 12.1,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 44,
+    "question": "The Gap band was from what neighbor hood that was known as the black wall street?",
+    "ground_truth": "Greenwood neighborhood in their hometown of Tulsa, Oklahoma",
+    "expected_behavior": "answer",
+    "answer": "The Gap band was from the neighborhood in **Tulsa, Oklahoma**, which was known as Black Wall Street.",
+    "error": null,
+    "elapsed_sec": 22.9,
+    "tools": [
+      "web_search",
+      "fetch_url"
+    ]
+  },
+  {
+    "case_no": 45,
+    "question": "In which tier of the English football league system does the team which competed against Notts County in the 1894 FA Cup Final currently compete? ",
+    "ground_truth": "second",
+    "expected_behavior": "answer",
+    "answer": "The team which competed against Notts County in the 1894 FA Cup Final was Bolton Wanderers. According to information found, Bolton Wanderers went down to the **fourth tier** of English football for the first time since 1988 on June 9, 2020.",
+    "error": null,
+    "elapsed_sec": 40.4,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "web_search",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 46,
+    "question": "When was the host of \"British Academy Television Awards 2009\" born? ",
+    "ground_truth": "4 April 1963",
+    "expected_behavior": "answer",
+    "answer": "The host of the British Academy Television Awards 2009 was Graham Norton. He was born on April 4, 1963.",
+    "error": null,
+    "elapsed_sec": 13.7,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 47,
+    "question": "Richard Burton became involved in a mayoral campaign for a politician that previously served as the Mayor of Baltimore during what time period?",
+    "ground_truth": "1999 to 2007",
+    "expected_behavior": "answer",
+    "answer": "Richard Burton became involved in Martin O'Malley's first Mayoral campaign after meeting him in **1998**.\n\nThe politician who previously served as the Mayor of Baltimore during that time period was **Martin Joseph O'Malley**, who served as the Mayor of Baltimore from **1999 to 2007**.",
+    "error": null,
+    "elapsed_sec": 7.2,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 48,
+    "question": "What singer-songwriter from Derry appeared on Paul van Dyk's 2012 album, Evolution?",
+    "ground_truth": "Johnny McDaid",
+    "expected_behavior": "answer",
+    "answer": "John \"Johnny\" McDaid is a Northern Irish singer, songwriter, musician and record producer from Derry, and his Fieldwork project was featured on Paul van Dyk's 2012 album *Evolution*.",
+    "error": null,
+    "elapsed_sec": 11.5,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 49,
+    "question": "Are Wilco Melissant and Todd Field both involved in the film industry (e.g. director, filmmaker, actor)?",
+    "ground_truth": "yes",
+    "expected_behavior": "answer",
+    "answer": "Wilco Melissant and Todd Field are both involved in the film industry.\n\n*   **Wilco Melissant** is a Dutch director who directed various arthouse video productions for Witchhunt Productions, of which he himself is the chairman (Source [1]).\n*   **Todd Field** is an American actor and three-time Academy Award nominated filmmaker (Source [2]), and has directed films such as *In the Bedroom*, *Too Romantic*, and *Little Children* (Sources [3], [4], [5], [6]).",
+    "error": null,
+    "elapsed_sec": 7.9,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 50,
+    "question": "What service is an Amtrak flagship that includes BWI Rail Station as one of its Amtrak intercity services?",
+    "ground_truth": "Acela Express",
+    "expected_behavior": "answer",
+    "answer": "The Amtrak flagship service that includes BWI Rail Station as one of its intercity services is the Acela Express, which is described as \"Amtrak's flagship service along the Northeast Corridor (NEC) in the Northeast United States between Washington, D.C. and Boston via 14 intermediate stops including Baltimore, Philadelphia, and New York City.\"",
+    "error": null,
+    "elapsed_sec": 12.9,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 51,
+    "question": "Who won more awards, Brothers Quay or Jake Kasdan?",
+    "ground_truth": "Brothers Quay",
+    "expected_behavior": "answer",
+    "answer": "I do not have enough information from the available documents to determine who won more awards between Brothers Quay and Jake Kasdan.",
+    "error": null,
+    "elapsed_sec": 15.3,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 52,
+    "question": "In what city did Nancy Winstel coach women's collegiate basketball?",
+    "ground_truth": "Highland Heights",
+    "expected_behavior": "answer",
+    "answer": "Nancy H. Winstel was the head women's basketball coach at Northern Kentucky University.",
+    "error": null,
+    "elapsed_sec": 5.9,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 53,
+    "question": "Who was a species of Alerce tree native to the Andes mountains named after?",
+    "ground_truth": "Robert FitzRoy",
+    "expected_behavior": "answer",
+    "answer": "Based on the documents, the common name Alerce is derived from the Spanish word for two unrelated trees: \"Larix\" (larch) and \"Fitzroya,\" although the name was first applied to the larch. The species *Fitzroya cupressoides* is a tall conifer native to the Andes mountains of southern Chile and Argentina, where it is known by common names such as alerce (\"larch\" in Spanish), lahuán (Spanish, from the Mapuche Native American name \"lawal\"), and Patagonian cypress.\n\nHowever, none of the retrieved sources state that a species of Alerce tree was named after a specific person.",
+    "error": null,
+    "elapsed_sec": 22.2,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 54,
+    "question": "The singer known as the \"Ballad Prince\" was on a romantic comedy that aired on what state-run channel from August 11 to September 30, 2010?",
+    "ground_truth": "SBS",
+    "expected_behavior": "answer",
+    "answer": "The romantic comedy featuring Lee Seung-gi, known as the \"Ballad Prince,\" aired on **SBS** from August 11 to September 30, 2010.",
+    "error": null,
+    "elapsed_sec": 12.5,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 55,
+    "question": "Which was Disney's 2nd animated production, Pinocchio or Home on the Range?",
+    "ground_truth": "Pinocchio",
+    "expected_behavior": "answer",
+    "answer": "Pinocchio was Disney's 2nd animated production.",
+    "error": null,
+    "elapsed_sec": 13.0,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 56,
+    "question": "What year did the musical premiere that was based on the 2007 Irish romantic musical film of the same name?",
+    "ground_truth": "2011",
+    "expected_behavior": "answer",
+    "answer": "The musical *Once*, which was based on the 2007 Irish romantic musical film of the same name, premiered in a workshop at the American Repertory Theatre in Cambridge, MA, in April 2011.",
+    "error": null,
+    "elapsed_sec": 16.7,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 57,
+    "question": "Which airport is closer to the Atlantic ocean: Wilmington International Airport, or Texarkana Regional Airport?",
+    "ground_truth": "Wilmington International Airport",
+    "expected_behavior": "answer",
+    "answer": "Based on the available evidence, Wilmington International Airport is closer to the Atlantic Ocean than Texarkana Regional Airport.\n\nWilmington International Airport is located in Delaware near Wilmington, Delaware, which is situated on the coast. Texarkana Regional Airport is located in Arkansas, significantly inland from the Atlantic Ocean.",
+    "error": null,
+    "elapsed_sec": 26.3,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 58,
+    "question": "The 1994 \"The Shadow\" co-stars Lone, Penelope Ann Miller, Peter Boyle, Jonathan Winters, Tim Curry and an actor that has received how many Emmy Award nominations?",
+    "ground_truth": "five",
+    "expected_behavior": "answer",
+    "answer": "I cannot determine how many Emmy Award nominations one of those co-stars has received based on the available information.",
+    "error": null,
+    "elapsed_sec": 32.2,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 59,
+    "question": "Which country in Florida is the airport associated with transportation in Jacksonville, Florida?",
+    "ground_truth": "Duval County",
+    "expected_behavior": "answer",
+    "answer": "Yes, the airport associated with transportation in Jacksonville, Florida, is Jacksonville International Airport (JAX).",
+    "error": null,
+    "elapsed_sec": 10.5,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 60,
+    "question": "What Japanese Auto Manufacturer headquarted in Minato, Tokyo, Japan did Nissan aquire controlling interest in?",
+    "ground_truth": "Mitsubishi",
+    "expected_behavior": "answer",
+    "answer": "Mitsubishi Motors Corporation is a Japanese multinational automotive manufacturer headquartered in Minato, Tokyo, Japan.\n\nNissan and Mitsubishi Motors are part of the Renault–Nissan–Mitsubishi Alliance, which is a Franco-Japanese strategic partnership between automobile manufacturers.",
+    "error": null,
+    "elapsed_sec": 18.9,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 61,
+    "question": "Faruk Halibegovic was born in what city that is the capital and largest city of Bosnia and Herzegovina with a population of 275,524?",
+    "ground_truth": "Sarajevo",
+    "expected_behavior": "answer",
+    "answer": "Faruk Halibegovic was born in Sarajevo.",
+    "error": null,
+    "elapsed_sec": 5.8,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 62,
+    "question": "Are Dorothy Parker and Maxine Kumin the same nationality?",
+    "ground_truth": "yes",
+    "expected_behavior": "answer",
+    "answer": "The local documents state that both Dorothy Parker and Maxine Kumin were American.",
+    "error": null,
+    "elapsed_sec": 7.3,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 63,
+    "question": "What type of music were vocalists Billie Joe Armstrong and Frank Iero involved with?",
+    "ground_truth": "punk rock",
+    "expected_behavior": "answer",
+    "answer": "Billie Joe Armstrong is best known as the lead vocalist, primary songwriter, and guitarist of the punk rock band Green Day. Frank Iero was the rhythm guitarist and backup vocalist of My Chemical Romance and post-hardcore band Leathermouth.",
+    "error": null,
+    "elapsed_sec": 7.4,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 64,
+    "question": "What is in both the Lithocarpus and Duranta species?",
+    "ground_truth": "trees",
+    "expected_behavior": "answer",
+    "answer": "Based on the information available from the documents, there is no shared characteristic explicitly stated between the *Lithocarpus* and *Duranta* species.\n\n*   ***Lithocarpus*** is a genus of trees in the beech family (Fagaceae).\n*   ***Duranta*** is a genus of flowering plants in the verbena family (Verbenaceae), consisting of shrubs and small trees.",
+    "error": null,
+    "elapsed_sec": 18.0,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 65,
+    "question": "What river runs along the neighborhood where Ashley Estes Kavanaugh's wedding was held?",
+    "ground_truth": "Potomac River",
+    "expected_behavior": "answer",
+    "answer": "The local documents indicate that Ashley Estes Kavanaugh's wedding ceremony was held in Georgetown. However, none of the provided documents mention a specific neighborhood or a river running along it.",
+    "error": null,
+    "elapsed_sec": 7.9,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 66,
+    "question": "Who was the first Russian composer to make a lasting impression internationally, Alessandro Scarlatti or Pyotr Ilyich Tchaikovsky?",
+    "ground_truth": "Pyotr Ilyich Tchaikovsky",
+    "expected_behavior": "answer",
+    "answer": "Pyotr Ilyich Tchaikovsky was the first Russian composer whose music made a lasting impression internationally, bolstered by his appearances as a guest conductor in Europe and the United States (Source [1]).",
+    "error": null,
+    "elapsed_sec": 13.7,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 67,
+    "question": "What kind of group does Pinhead Gunpowder and Billie Joe Armstrong have in common?",
+    "ground_truth": "band",
+    "expected_behavior": "answer",
+    "answer": "The commonality between Pinhead Gunpowder and Billie Joe Armstrong is that they are both involved with the punk rock scene, specifically through their involvement in the band **Pinhead Gunpowder**.\n\n*   **Billie Joe Armstrong** is a guitarist and vocalist for the punk rock band **Pinhead Gunpowder**.\n*   The document also mentions that Pinhead Gunpowder features Billie Joe Armstrong (guitar, vocals) and Jason White (guitar, vocals).",
+    "error": null,
+    "elapsed_sec": 8.6,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 68,
+    "question": "\"Clydebuilt\" is on the south bank of what river?",
+    "ground_truth": "the River Clyde",
+    "expected_behavior": "answer",
+    "answer": "\"Clydebuilt\" is located on the south bank of the River Clyde in Renfrewshire.",
+    "error": null,
+    "elapsed_sec": 7.2,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 69,
+    "question": "The Secret of Moonacre was directed by the founder of which animation studio?",
+    "ground_truth": "Klasky Csupo",
+    "expected_behavior": "answer",
+    "answer": "The Secret of Moonacre was directed by Gábor Csupó, who is a co-founder of the animation studio Klasky Csupo.",
+    "error": null,
+    "elapsed_sec": 10.9,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 70,
+    "question": "How many girls and boys are in the seventeen sibling family featured on Counting On?",
+    "ground_truth": "nine girls and 10 boys",
+    "expected_behavior": "answer",
+    "answer": "The Duggar family, which is featured on *Counting On*, has 19 children in total: nine girls and 10 boys.",
+    "error": null,
+    "elapsed_sec": 16.4,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 71,
+    "question": "Does the drink Quick Fuck have more layers than the drink Ti' Punch?",
+    "ground_truth": "yes",
+    "expected_behavior": "answer",
+    "answer": "I do not have any information regarding the number of layers in the drinks Quick Fuck or Ti' Punch.",
+    "error": null,
+    "elapsed_sec": 9.4,
+    "tools": [
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 72,
+    "question": "How many rooms does the Tropicana Hotel have where the 7th annual Adult Video News awards ceremony were held in 1980?",
+    "ground_truth": "1,467 rooms",
+    "expected_behavior": "answer",
+    "answer": "The local documents state that the Tropicana Hotel offers **1,467 rooms**.",
+    "error": null,
+    "elapsed_sec": 20.3,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 73,
+    "question": "What are The Ready Set and Cell?",
+    "ground_truth": "band",
+    "expected_behavior": "answer",
+    "answer": "Based on the available information, \"The Ready Set\" can refer to a few different things:\n\n1.  **A Singer-Songwriter:** Jordan Mark Witzigreuter is an American singer-songwriter known professionally as The Ready Set. He is from Fort Wayne, Indiana, and has released studio albums such as *Tantrum Castle*, *I'm Alive, I'm Dreaming*, *The Bad & The Better*, and *I Will Be Nothing Without Your Love*.\n2.  **A Business Consulting Company:** There is a company named **ReadySet** that partners with leaders to run energizing, action-oriented retreats designed for building adaptable organizations.\n\n\"Cell\" appears in the context of a game called **Three Cell**, which is described as a freecell game.",
+    "error": null,
+    "elapsed_sec": 19.5,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 74,
+    "question": "What railroad in which Challengers were most common was completed in 1915?",
+    "ground_truth": "Clinchfield Railroad",
+    "expected_behavior": "answer",
+    "answer": "Challengers were most common in the Union Pacific Railroad.",
+    "error": null,
+    "elapsed_sec": 55.0,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "web_search",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 75,
+    "question": "Which contributor to Fear: 13 Stories of Suspense and Horror was born on March 15, 1953 ?",
+    "ground_truth": "Heather Graham",
+    "expected_behavior": "answer",
+    "answer": "Heather Graham Pozzessere was a contributor to *Fear: 13 Stories of Suspense and Horror* and was born on March 15, 1953.",
+    "error": null,
+    "elapsed_sec": 9.1,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 76,
+    "question": "Tritonia and Phyteuma are both names for a what of plants?",
+    "ground_truth": "genus",
+    "expected_behavior": "answer",
+    "answer": "Tritonia and Phyteuma are both names for genera of flowering plants. Tritonia is a genus in the iris family, while Phyteuma is a genus in the Campanulaceae family.",
+    "error": null,
+    "elapsed_sec": 12.6,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 77,
+    "question": "What classical music written by a Russian composer did Sia heavily sample?",
+    "ground_truth": "Montagues and Capulets",
+    "expected_behavior": "answer",
+    "answer": "Sia heavily samples Sergei Prokofiev's 'Montagues and Capulets'.",
+    "error": null,
+    "elapsed_sec": 7.5,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 78,
+    "question": "Are the mountains known as Trivor and The Crown both found in Asia?",
+    "ground_truth": "yes",
+    "expected_behavior": "answer",
+    "answer": "Yes, both Trivor and The Crown are found in Asia.\n\n*   **The Crown**, also known as Huang Guan Shan and sometimes Crown Peak, is a mountain in the Karakoram mountain range in China (Xinjiang Uyghur Autonomous Region of China).\n*   **Trivor** is one of the high peaks of the Hispar Muztagh, a subrange of the Karakoram range in the Gilgit-Baltistan of Pakistan.",
+    "error": null,
+    "elapsed_sec": 10.9,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 79,
+    "question": "Who was the wife of the president when William Bainbridge started his career?",
+    "ground_truth": "Abigail",
+    "expected_behavior": "answer",
+    "answer": "I do not have information regarding the wife of the president when William Bainbridge started his career.",
+    "error": null,
+    "elapsed_sec": 12.8,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 80,
+    "question": "Which town in New Hampshire with a population of 5,457 in 2010 is located by Mount Monadnock?",
+    "ground_truth": "Jaffrey",
+    "expected_behavior": "answer",
+    "answer": "Jaffrey is the town in New Hampshire with a population of 5,457 in 2010 and is located by Mount Monadnock.",
+    "error": null,
+    "elapsed_sec": 13.8,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 81,
+    "question": "What did DECnet Phase I become?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "Based on the available information, DECnet evolved through its various phases, with efforts made to align with OSI standards as it developed into later versions like Phase IV. The initial release was in 1975 and connected two PDP-11 minicomputers, evolving into one of the first peer-to-peer network architectures.\n\nHowever, the search results do not provide a specific name for what \"DECnet Phase I\" directly became as a single successor entity; rather, it describes its evolution toward later phases such as Phase IV and its role in transforming DEC into a networking powerhouse.",
+    "error": null,
+    "elapsed_sec": 58.4,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "fetch_url",
+      "fetch_url",
+      "web_search",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 82,
+    "question": "What kind of school is a Sonderungsverbot?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "I could not find specific information about what kind of school a Sonderungsverbot is from the available documents or web search results.",
+    "error": null,
+    "elapsed_sec": 13.5,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 83,
+    "question": "What usually carries sediment particles from one place to another?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "Coastal sediment transport takes place due to the motions of **waves and currents**.",
+    "error": null,
+    "elapsed_sec": 10.3,
+    "tools": [
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 84,
+    "question": "Who threw Hagen into the river?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "The provided search results do not contain information stating who threw Hagen into the river. However, one result from the *Nibelungenlied* mentions that \"Hagen throws the priest overboard\" while ferrying Burgundians across a river. Another result mentions that in a Norse story, Hagen \"threw thirty of them [swords] into the sea.\"",
+    "error": null,
+    "elapsed_sec": 15.1,
+    "tools": [
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 85,
+    "question": "In what century did the history of the steam digester begin?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "The history of the steam digester began in the 17th century, as it was invented by French physicist Denis Papin in 1679.",
+    "error": null,
+    "elapsed_sec": 21.1,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 86,
+    "question": "In what country was Damascus?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "Damascus is located in **Syria**.",
+    "error": null,
+    "elapsed_sec": 10.5,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 87,
+    "question": "How many people usually go to see Harvard sports teams play each year?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "I do not have specific data on how many people usually go to see Harvard sports teams play each year in the information I found. The available sources discuss team tryouts and general game-day activities rather than attendance figures.",
+    "error": null,
+    "elapsed_sec": 21.3,
+    "tools": [
+      "web_search",
+      "fetch_url"
+    ]
+  },
+  {
+    "case_no": 88,
+    "question": "What Governor wasn't in charge of New France died in 1752?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "Based on the search results, there is no evidence to support the existence of a Governor who was not in charge of New France but died in 1752. The historical records indicate that Jacques-Pierre de Taffanel de la Jonquière, Marquis de la Jonquière, was appointed as Governor General of New France and died in 1752 while serving in that capacity.",
+    "error": null,
+    "elapsed_sec": 49.4,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "fetch_url",
+      "web_search",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 89,
+    "question": "When did BSkyB fail launching it's HDTV service?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "BSkyB launched its HDTV service, Sky+ HD, on May 22, 2006.",
+    "error": null,
+    "elapsed_sec": 14.9,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 90,
+    "question": "What letter didn't Washington present to Saint-Pierre ?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "Based on the search results, one snippet indicates that George Washington presented Dinwiddie's letter of October 30, 1753, to the French commander Le Gardeur de Saint-Pierre, who replied on December 15. However, the provided information does not specify what other letter Washington did not present to Saint-Pierre.",
+    "error": null,
+    "elapsed_sec": 34.6,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 91,
+    "question": "The Stagg Presidential Center is set to be finished in what year?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "I am sorry, but I could not find information regarding when The Stagg Presidential Center is set to be finished in the documents or through a web search.",
+    "error": null,
+    "elapsed_sec": 15.0,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 92,
+    "question": "When was the first reference in history to Prussia?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "The first historical reference to Prussia as a kingdom occurred in **1701**, when Frederick I declared himself the King of Prussia.\n\nPrussia's roots trace back further:\n*   **13th century:** The Teutonic Order established a stronghold in the region that would later become Prussia, which was initially a Baltic frontier conquered by the Teutonic Knights.\n*   The territory existed as Ducal Prussia from 1525 to 1701 (which existed as Brandenburg-Prussia from 1618 to 1701).",
+    "error": null,
+    "elapsed_sec": 20.3,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 93,
+    "question": "What is underrepresented in epitope regions?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "Indigenous Australian HLA alleles are underrepresented in T cell epitope discovery.",
+    "error": null,
+    "elapsed_sec": 13.2,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 94,
+    "question": "What is a variant of the simple expansion pivot mounting?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "",
+    "error": null,
+    "elapsed_sec": 30.1,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "fetch_url",
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 95,
+    "question": "What was the first textile device used commercially?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "I am unable to determine what the first textile device used commercially was based on the information available in my documents and web search results.",
+    "error": null,
+    "elapsed_sec": 24.7,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 96,
+    "question": "How many seats does Australia have in the House of Representatives?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "The House of Representatives in Australia currently consists of 150 members.",
+    "error": null,
+    "elapsed_sec": 27.2,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "fetch_url",
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 97,
+    "question": "If there is no dissent, the Presiding Officer says what?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "If there is no dissent, the presiding officer announces the result after listening to shouts of \"Aye\" and \"No\" from the members. The announcement settles the question.",
+    "error": null,
+    "elapsed_sec": 8.2,
+    "tools": [
+      "query_documents"
+    ]
+  },
+  {
+    "case_no": 98,
+    "question": "What was first battle in 1745?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "The Battle of Prestonpans was the first battle of the last Jacobite Rising, fought on September 20-21, 1745.",
+    "error": null,
+    "elapsed_sec": 18.3,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 99,
+    "question": "Whose experiments with oxygen led to the popular theory of combustion and corrosion?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "Antoine Lavoisier's experiments with oxygen helped to discredit the then-popular phlogiston theory of combustion and corrosion.",
+    "error": null,
+    "elapsed_sec": 13.1,
+    "tools": [
+      "query_documents",
+      "web_search"
+    ]
+  },
+  {
+    "case_no": 100,
+    "question": "What does cytokine TGF-β encourage the activity of?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "expected_behavior": "fallback",
+    "answer": "Cytokine TGF-$\\beta$ is inhibitory to helper T cells and suppresses the activity of most of the immune system. It is produced by regulatory T cells and Th3 cells along with IL-10.",
+    "error": null,
+    "elapsed_sec": 30.1,
+    "tools": [
+      "query_documents",
+      "web_search",
+      "fetch_url",
+      "query_documents"
+    ]
+  }
+]

@@ -1,0 +1,958 @@
+[
+  {
+    "question": "Sam Mendes and Ruby Yang share what profession?",
+    "ground_truth": "filmmaker.",
+    "relevant_chunk_ids": [
+      "d477086e1f33167d-chunk-0",
+      "9e4d26b94d14930b-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Sam Mendes | Ruby Yang; type: comparison"
+  },
+  {
+    "question": "What program responsible for the Health Insurance Portability and Accountability Act works with AHCCS?",
+    "ground_truth": "Centers for Medicare and Medicaid Services",
+    "relevant_chunk_ids": [
+      "e31c2195c2627467-chunk-0",
+      "5d8a58953f58c9e5-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Arizona Health Care Cost Containment System | Centers for Medicare and Medicaid Services; type: bridge"
+  },
+  {
+    "question": "The 1997–98 UCLA Bruins men's basketball team lost to what team in the sweet sixteen match?",
+    "ground_truth": "The 1997–98 Kentucky Wildcats men's basketball team",
+    "relevant_chunk_ids": [
+      "ed570add8aab6caa-chunk-0",
+      "41b401e343bb4a27-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: 1997–98 UCLA Bruins men's basketball team | 1997–98 Kentucky Wildcats men's basketball team; type: bridge"
+  },
+  {
+    "question": "What do a Flaming beverage and a Gin and tonic have in common?",
+    "ground_truth": "cocktails",
+    "relevant_chunk_ids": [
+      "c7ab45e86993a973-chunk-0",
+      "20ff601210ce53fb-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Flaming beverage | Gin and tonic; type: comparison"
+  },
+  {
+    "question": "How many episodes were in the 23rd season of a Fox network show which, in it's twenty-second season, aired it's twenty-first episode which was written by John Frink and directed by Bob Anderson.",
+    "ground_truth": "22 episodes.",
+    "relevant_chunk_ids": [
+      "42e1493af93721bb-chunk-0",
+      "42e1493af93721bb-chunk-1",
+      "0cbdfc5ae43920f7-chunk-0",
+      "0cbdfc5ae43920f7-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: 500 Keys | The Simpsons (season 22); type: bridge"
+  },
+  {
+    "question": "Were both Roger Donaldson and André Cayatte french filmmakers?",
+    "ground_truth": "no",
+    "relevant_chunk_ids": [
+      "4f7c507d0324b816-chunk-0",
+      "d0bec6faad0f4eb4-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Roger Donaldson | André Cayatte; type: comparison"
+  },
+  {
+    "question": "What institution does 2017 Texas Tech Red Raiders baseball team and Dan Law Field at Rip Griffin Park have in common?",
+    "ground_truth": "Texas Tech University",
+    "relevant_chunk_ids": [
+      "da8b7303c820bd2f-chunk-0",
+      "d9ef5a6ea2f1e381-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: 2017 Texas Tech Red Raiders baseball team | Dan Law Field at Rip Griffin Park; type: bridge"
+  },
+  {
+    "question": "What CBS-affiliated station serves Pontotoc County, Oklahoma?",
+    "ground_truth": "KXII",
+    "relevant_chunk_ids": [
+      "aa9ac465340c0e1b-chunk-0",
+      "ded7d88aab4e62fb-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: KXII | Ada, Oklahoma; type: bridge"
+  },
+  {
+    "question": "In 1632, where was one of the most highly acclaimed English architects born?",
+    "ground_truth": "East Knoyle",
+    "relevant_chunk_ids": [
+      "cffc140d151e8cf2-chunk-0",
+      "cffc140d151e8cf2-chunk-1",
+      "1da0916bd21b8597-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: East Knoyle | Christopher Wren; type: bridge"
+  },
+  {
+    "question": "In what year was the singer who popularized \"I'll Keep the Lovelight Burning\" born?",
+    "ground_truth": "1927",
+    "relevant_chunk_ids": [
+      "4695d34e9ac2e064-chunk-0",
+      "841d70c9c5c7bf7a-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: I'll Keep the Lovelight Burning | Patti Page; type: bridge"
+  },
+  {
+    "question": "What year was the film \"Mom\" released, starring the voice of Shashaa Tirupati?",
+    "ground_truth": "2017",
+    "relevant_chunk_ids": [
+      "36c22a9e8fde61d4-chunk-0",
+      "fab2f4c333a0d2fd-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Shashaa Tirupati | Mom (film); type: bridge"
+  },
+  {
+    "question": "Where did Otto von Bismarck and Ludwig Friedrich Leopold von Gerlach originate? ",
+    "ground_truth": "Prussia",
+    "relevant_chunk_ids": [
+      "1c9bb65e0b830142-chunk-0",
+      "f1910fca40dad82b-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Ludwig Friedrich Leopold von Gerlach | Otto von Bismarck; type: bridge"
+  },
+  {
+    "question": "The American Sweetgum is the hostplant of what kind of bug?",
+    "ground_truth": "moth",
+    "relevant_chunk_ids": [
+      "5c6047d6174e2abe-chunk-0",
+      "819784f1167bf247-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Phyllocnistis liquidambarisella | Liquidambar styraciflua; type: bridge"
+  },
+  {
+    "question": "Where was the artist behind \"Shit\" born and raised?",
+    "ground_truth": "Atlanta, Georgia",
+    "relevant_chunk_ids": [
+      "41db4f988d62ad8d-chunk-0",
+      "e6d5616ebd46889f-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Shit (song) | Future (rapper); type: bridge"
+  },
+  {
+    "question": "When did the UVF Mid-Ulster Brigade conducted the attack The Miami Showband killings?",
+    "ground_truth": "31 July 1975",
+    "relevant_chunk_ids": [
+      "8338c4155a57c166-chunk-0",
+      "8338c4155a57c166-chunk-1",
+      "96da88236ddd3b74-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: UVF Mid-Ulster Brigade | Miami Showband killings; type: bridge"
+  },
+  {
+    "question": "What did Karan Kapoor's maternal grandfather deliver?",
+    "ground_truth": "Shakespeare performances",
+    "relevant_chunk_ids": [
+      "d51f3533a067b13c-chunk-1",
+      "f6d9a3d30b3ccc08-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Karan Kapoor | Geoffrey Kendal; type: bridge"
+  },
+  {
+    "question": "Who wrote Tom Vaughan's popular 2008 film?",
+    "ground_truth": "Dana Fox",
+    "relevant_chunk_ids": [
+      "b8f2d724efabc777-chunk-0",
+      "333cd7344be54a74-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Tom Vaughan (director) | What Happens in Vegas; type: bridge"
+  },
+  {
+    "question": "What New York city is 60 miles northwest of the Glen Iris Inn?",
+    "ground_truth": "Buffalo",
+    "relevant_chunk_ids": [
+      "948f5de4eacdc7e9-chunk-0",
+      "8cd746449195a781-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Glen Iris Inn | Letchworth State Park; type: bridge"
+  },
+  {
+    "question": "George Gershwin is an American Composer and Judith Weir is a composer from which country?",
+    "ground_truth": "a British composer",
+    "relevant_chunk_ids": [
+      "5855b1e2b65cf068-chunk-0",
+      "095aa460615dcd50-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Judith Weir | George Gershwin; type: comparison"
+  },
+  {
+    "question": "What studio album did Kanye West record with Roc-A-Fella Records and soul singer Dwele?",
+    "ground_truth": "My Beautiful Dark Twisted Fantasy",
+    "relevant_chunk_ids": [
+      "45695e5da84bb47a-chunk-0",
+      "8bba1c0c4c212b95-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Power (Kanye West song) | My Beautiful Dark Twisted Fantasy; type: bridge"
+  },
+  {
+    "question": "Arbutus and Aspidistra are what types of plants?",
+    "ground_truth": "flowering plants",
+    "relevant_chunk_ids": [
+      "15b46d98a4c08770-chunk-0",
+      "263b3073778abebf-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Arbutus | Aspidistra; type: comparison"
+  },
+  {
+    "question": "Did Greg Costikyan have the same profession as John Dolmayan?  ",
+    "ground_truth": "no",
+    "relevant_chunk_ids": [
+      "9a77fd2d8f8ba766-chunk-0",
+      "13bc5c98100e4f8b-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: John Dolmayan | Greg Costikyan; type: comparison"
+  },
+  {
+    "question": "How many chapters does Yōko Shōji's most famous manga have?",
+    "ground_truth": "24",
+    "relevant_chunk_ids": [
+      "170fede0ad2bc77d-chunk-0",
+      "c5a9c73d908f13c1-chunk-0",
+      "c5a9c73d908f13c1-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Yōko Shōji | Seito Shokun!; type: bridge"
+  },
+  {
+    "question": "Who is one other client that is represented by the same person that also represents a barrister at Doughty Street Chambers?",
+    "ground_truth": "Angelina Jolie",
+    "relevant_chunk_ids": [
+      "226e86372b638892-chunk-0",
+      "a0d242355a2b4d9b-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Justin Smith (milliner) | Amal Clooney; type: bridge"
+  },
+  {
+    "question": "Which genus is native to arid or semi-desert areas, Alopecurus or Echeveria?",
+    "ground_truth": "Echeveria",
+    "relevant_chunk_ids": [
+      "877b1a3dd122ed14-chunk-0",
+      "a8cfdfadc6747c0d-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Alopecurus | Echeveria; type: comparison"
+  },
+  {
+    "question": "Who was the director of the 1987 American psychological thriller film in which the actor, who played Bob Charles in \"Not Necessarily the News\", appeared?",
+    "ground_truth": "Adrian Lyne",
+    "relevant_chunk_ids": [
+      "93a9884db654c0a9-chunk-1",
+      "8a77c8872ca48f3d-chunk-0",
+      "ff6c753677d1976f-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Stuart Pankin | Fatal Attraction; type: bridge"
+  },
+  {
+    "question": "Elizabeth Austin wrote for a fitness magazine founded by who?",
+    "ground_truth": "Christine MacIntyre",
+    "relevant_chunk_ids": [
+      "6d0bcd5f781f4448-chunk-0",
+      "3b8167dd23491ebb-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Elizabeth Austin (writer) | Shape (magazine); type: bridge"
+  },
+  {
+    "question": "Jean-Paul Sartre or George Bernard Shaw  have more influence on turn of the century literature?",
+    "ground_truth": "George Bernard Shaw",
+    "relevant_chunk_ids": [
+      "9f2da8c3d5647b85-chunk-0",
+      "8cbc3a1404229f43-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Jean-Paul Sartre | George Bernard Shaw; type: comparison"
+  },
+  {
+    "question": "Which name adopted by African-American activist Allen Donaldson co-found Black Power movement of the 1960s and 1970s",
+    "ground_truth": "Hakim Abdullah Jamal",
+    "relevant_chunk_ids": [
+      "ff1fff3dd2fea8ac-chunk-0",
+      "34ad8ad5143c7f11-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Maulana Karenga | Hakim Jamal; type: bridge"
+  },
+  {
+    "question": "Which two teams did the the head coach of The 2007 San Diego State Aztecs play for professionally?",
+    "ground_truth": "Detroit Lions and the Los Angeles Rams",
+    "relevant_chunk_ids": [
+      "ee7ccee4bd3b900d-chunk-0",
+      "07cf478659cfb8b6-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: 2007 San Diego State Aztecs football team | Chuck Long; type: bridge"
+  },
+  {
+    "question": "Cowie Castle at Stonehaven, and Allardice Castle near Inverbervie, are part of a coastal chain of castles in Scotland overlooking which sea?",
+    "ground_truth": "North Sea",
+    "relevant_chunk_ids": [
+      "664c9601aa1a5578-chunk-1",
+      "842a26417f040ba3-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Allardice Castle | Cowie Castle; type: bridge"
+  },
+  {
+    "question": "What were the nicknames for the companion of Nuna?",
+    "ground_truth": "white fox, polar fox, or snow fox",
+    "relevant_chunk_ids": [
+      "aa6d1125eb0b630a-chunk-0",
+      "8437142db85760bb-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Never Alone (video game) | Arctic fox; type: bridge"
+  },
+  {
+    "question": "What was the first name of the wife of the namesake of the high school located at 123 Coles Street in Jersey City?",
+    "ground_truth": "Cheryl",
+    "relevant_chunk_ids": [
+      "34823e6829b6c793-chunk-1",
+      "ee70f2c252f313de-chunk-0",
+      "ee70f2c252f313de-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Dr. Ronald E. McNair Academic High School | Ronald McNair; type: bridge"
+  },
+  {
+    "question": "Are Control Room and Meeting Resistance both documentary films that involve Iraq?",
+    "ground_truth": "yes",
+    "relevant_chunk_ids": [
+      "4491ec608e64803e-chunk-0",
+      "29f4131aeda29f2e-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Control Room (film) | Meeting Resistance; type: comparison"
+  },
+  {
+    "question": "Are both Adolfo Bioy Casares and James Norman Hall Argentinian authors?",
+    "ground_truth": "no",
+    "relevant_chunk_ids": [
+      "cead6cb55fd9ce83-chunk-0",
+      "c6c9a49f2b8b3630-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Adolfo Bioy Casares | James Norman Hall; type: comparison"
+  },
+  {
+    "question": "How many movies did the \"Comic Book Villains\" star born on march 20,1970 apprear in since the early 1990s?",
+    "ground_truth": "over sixty films",
+    "relevant_chunk_ids": [
+      "15c51d472549524c-chunk-0",
+      "277fbdb87bfed4be-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Comic Book Villains | Michael Rapaport; type: bridge"
+  },
+  {
+    "question": "J. Searle Dawley and Ken Annakin were both directors of what?",
+    "ground_truth": "Kenneth Cooper \"Ken\" Annakin, OBE (10 August 1914 – 22 April 2009) was a prolific English film director.",
+    "relevant_chunk_ids": [
+      "ef8652a122e6172d-chunk-0",
+      "68587806a21cd02d-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: J. Searle Dawley | Ken Annakin; type: comparison"
+  },
+  {
+    "question": "What star if the Burbs was Canadian?",
+    "ground_truth": "Richard \"Rick\" Ducommun",
+    "relevant_chunk_ids": [
+      "e1552f23d45765cc-chunk-0",
+      "0046b7b449ee6eb2-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: The 'Burbs | Rick Ducommun; type: bridge"
+  },
+  {
+    "question": "What characteristic meaning it's transferable between species, does monkeypox and cowpox virus both share?",
+    "ground_truth": "zoonotic",
+    "relevant_chunk_ids": [
+      "eff2a230ea949803-chunk-0",
+      "83a038d380d8930e-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Monkeypox virus | Cowpox; type: bridge"
+  },
+  {
+    "question": "In between The Bears and I and Oceans which was released on July 31, 1974, by Buena Vista Distribution?",
+    "ground_truth": "The Bears and I",
+    "relevant_chunk_ids": [
+      "b50565698c69599c-chunk-0",
+      "b50565698c69599c-chunk-1",
+      "ff6e9bc450c98c2b-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: The Bears and I | Oceans (film); type: comparison"
+  },
+  {
+    "question": " Worldview Entertainment is an American independent motion picture company that produced a 2015 mystery thriller film based on a novel by who?",
+    "ground_truth": "Tom Rob",
+    "relevant_chunk_ids": [
+      "0670bd4185e96264-chunk-0",
+      "0670bd4185e96264-chunk-1",
+      "4bee11014189f450-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Worldview Entertainment | Child 44 (film); type: bridge"
+  },
+  {
+    "question": "Which show was Andrew \"Andy\" Spade's brother in n the 1990s?",
+    "ground_truth": "\"Saturday Night Live\"",
+    "relevant_chunk_ids": [
+      "b74ed6019b24f3ce-chunk-0",
+      "bcd866de9ce23d26-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Andy Spade | David Spade; type: bridge"
+  },
+  {
+    "question": "In what city did Jack J. Stephans coach from 1979 to 1980?",
+    "ground_truth": "New York City",
+    "relevant_chunk_ids": [
+      "a3eebc8e80711785-chunk-1",
+      "54f502650ae750d0-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Jack Stephans | Fordham University; type: bridge"
+  },
+  {
+    "question": "The Gap band was from what neighbor hood that was known as the black wall street?",
+    "ground_truth": "Greenwood neighborhood in their hometown of Tulsa, Oklahoma",
+    "relevant_chunk_ids": [
+      "8cada56be78980f9-chunk-0",
+      "7bca008aca2380b9-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: The Gap Band | Greenwood, Tulsa; type: bridge"
+  },
+  {
+    "question": "In which tier of the English football league system does the team which competed against Notts County in the 1894 FA Cup Final currently compete? ",
+    "ground_truth": "second",
+    "relevant_chunk_ids": [
+      "baeb9ac56e110bab-chunk-0",
+      "583199cb6af1b3fa-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: 1894 FA Cup Final | Bolton Wanderers F.C.; type: bridge"
+  },
+  {
+    "question": "When was the host of \"British Academy Television Awards 2009\" born? ",
+    "ground_truth": "4 April 1963",
+    "relevant_chunk_ids": [
+      "ace222b33af050cd-chunk-0",
+      "4f2d4d3c1a4a762d-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: British Academy Television Awards 2009 | Graham Norton; type: bridge"
+  },
+  {
+    "question": "Richard Burton became involved in a mayoral campaign for a politician that previously served as the Mayor of Baltimore during what time period?",
+    "ground_truth": "1999 to 2007",
+    "relevant_chunk_ids": [
+      "4b41bb8cbf9e3530-chunk-0",
+      "85a168a01c056dd9-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Richard Burton (Baltimore) | Martin O'Malley; type: bridge"
+  },
+  {
+    "question": "What singer-songwriter from Derry appeared on Paul van Dyk's 2012 album, Evolution?",
+    "ground_truth": "Johnny McDaid",
+    "relevant_chunk_ids": [
+      "844033b601e2a699-chunk-0",
+      "55daa5e5565a33a4-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Evolution (Paul van Dyk album) | Johnny McDaid; type: bridge"
+  },
+  {
+    "question": "Are Wilco Melissant and Todd Field both involved in the film industry (e.g. director, filmmaker, actor)?",
+    "ground_truth": "yes",
+    "relevant_chunk_ids": [
+      "a9bcc7a138700df5-chunk-0",
+      "962dd1a7535fb173-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Wilco Melissant | Todd Field; type: comparison"
+  },
+  {
+    "question": "What service is an Amtrak flagship that includes BWI Rail Station as one of its Amtrak intercity services?",
+    "ground_truth": "Acela Express",
+    "relevant_chunk_ids": [
+      "e4e6b97c31f3e4b3-chunk-0",
+      "9da2a2dc19b7a203-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: BWI Rail Station | Acela Express; type: bridge"
+  },
+  {
+    "question": "Who won more awards, Brothers Quay or Jake Kasdan?",
+    "ground_truth": "Brothers Quay",
+    "relevant_chunk_ids": [
+      "6d6b3ebb7ac72a21-chunk-0",
+      "6d6b3ebb7ac72a21-chunk-1",
+      "455a088e159a8b08-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Brothers Quay | Jake Kasdan; type: comparison"
+  },
+  {
+    "question": "In what city did Nancy Winstel coach women's collegiate basketball?",
+    "ground_truth": "Highland Heights",
+    "relevant_chunk_ids": [
+      "b0d36c88c94373e1-chunk-0",
+      "2306136f7aa977d9-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Nancy Winstel | Northern Kentucky University; type: bridge"
+  },
+  {
+    "question": "Who was a species of Alerce tree native to the Andes mountains named after?",
+    "ground_truth": "Robert FitzRoy",
+    "relevant_chunk_ids": [
+      "ab8c8b8ac759ca4e-chunk-0",
+      "3a1d3917c6b07ec2-chunk-0",
+      "3a1d3917c6b07ec2-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Alerce | Fitzroya; type: bridge"
+  },
+  {
+    "question": "The singer known as the \"Ballad Prince\" was on a romantic comedy that aired on what state-run channel from August 11 to September 30, 2010?",
+    "ground_truth": "SBS",
+    "relevant_chunk_ids": [
+      "a27a33c64efaf1cf-chunk-0",
+      "9bd5720c95250856-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: My Girlfriend Is a Nine-Tailed Fox | Lee Seung-gi; type: bridge"
+  },
+  {
+    "question": "Which was Disney's 2nd animated production, Pinocchio or Home on the Range?",
+    "ground_truth": "Pinocchio",
+    "relevant_chunk_ids": [
+      "6eebf7a83cb2274c-chunk-0",
+      "77eb5a7ae7300b7a-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Pinocchio (1940 film) | Home on the Range (2004 film); type: comparison"
+  },
+  {
+    "question": "What year did the musical premiere that was based on the 2007 Irish romantic musical film of the same name?",
+    "ground_truth": "2011",
+    "relevant_chunk_ids": [
+      "4fdde241835d3dfb-chunk-0",
+      "4fdde241835d3dfb-chunk-1",
+      "33c90021f242aa98-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Once (musical) | Once (film); type: bridge"
+  },
+  {
+    "question": "Which airport is closer to the Atlantic ocean: Wilmington International Airport, or Texarkana Regional Airport?",
+    "ground_truth": "Wilmington International Airport",
+    "relevant_chunk_ids": [
+      "cbed6933ec3fa63e-chunk-0",
+      "a1f6b3e0985724d1-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Wilmington International Airport | Texarkana Regional Airport; type: comparison"
+  },
+  {
+    "question": "The 1994 \"The Shadow\" co-stars Lone, Penelope Ann Miller, Peter Boyle, Jonathan Winters, Tim Curry and an actor that has received how many Emmy Award nominations?",
+    "ground_truth": "five",
+    "relevant_chunk_ids": [
+      "922ae25f84ac2864-chunk-0",
+      "78a9bf2189a9b18a-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: The Shadow (1994 film) | Ian McKellen; type: bridge"
+  },
+  {
+    "question": "Which country in Florida is the airport associated with transportation in Jacksonville, Florida?",
+    "ground_truth": "Duval County",
+    "relevant_chunk_ids": [
+      "4a868640baffb25d-chunk-0",
+      "b120db604ddefa05-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Transportation in Jacksonville, Florida | Jacksonville International Airport; type: bridge"
+  },
+  {
+    "question": "What Japanese Auto Manufacturer headquarted in Minato, Tokyo, Japan did Nissan aquire controlling interest in?",
+    "ground_truth": "Mitsubishi",
+    "relevant_chunk_ids": [
+      "356ff33ab794a547-chunk-0",
+      "aebfdd4714547adb-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Mitsubishi Motors | Renault–Nissan–Mitsubishi Alliance; type: bridge"
+  },
+  {
+    "question": "Faruk Halibegovic was born in what city that is the capital and largest city of Bosnia and Herzegovina with a population of 275,524?",
+    "ground_truth": "Sarajevo",
+    "relevant_chunk_ids": [
+      "7b7946d4c41f49b8-chunk-0",
+      "a83d9ba3fb93ba59-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Faruk Halilbegović | Sarajevo; type: bridge"
+  },
+  {
+    "question": "Are Dorothy Parker and Maxine Kumin the same nationality?",
+    "ground_truth": "yes",
+    "relevant_chunk_ids": [
+      "d06609cc1c34a8e6-chunk-0",
+      "0b95c6aa7388ab9e-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Dorothy Parker | Maxine Kumin; type: comparison"
+  },
+  {
+    "question": "What type of music were vocalists Billie Joe Armstrong and Frank Iero involved with?",
+    "ground_truth": "punk rock",
+    "relevant_chunk_ids": [
+      "729ec29b398634f5-chunk-0",
+      "f00e9c4d02781a8c-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Billie Joe Armstrong | Frank Iero; type: comparison"
+  },
+  {
+    "question": "What is in both the Lithocarpus and Duranta species?",
+    "ground_truth": "trees",
+    "relevant_chunk_ids": [
+      "01c58537e2709caa-chunk-0",
+      "aef7c98e411debfa-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Lithocarpus | Duranta; type: comparison"
+  },
+  {
+    "question": "What river runs along the neighborhood where Ashley Estes Kavanaugh's wedding was held?",
+    "ground_truth": "Potomac River",
+    "relevant_chunk_ids": [
+      "f9d81e1c281bc704-chunk-0",
+      "f9d81e1c281bc704-chunk-1",
+      "020434c47ad34e3b-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Ashley Estes Kavanaugh | Georgetown (Washington, D.C.); type: bridge"
+  },
+  {
+    "question": "Who was the first Russian composer to make a lasting impression internationally, Alessandro Scarlatti or Pyotr Ilyich Tchaikovsky?",
+    "ground_truth": "Pyotr Ilyich Tchaikovsky",
+    "relevant_chunk_ids": [
+      "d132b15ddb8fe4a5-chunk-0",
+      "32f50c8d988465bd-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Alessandro Scarlatti | Pyotr Ilyich Tchaikovsky; type: comparison"
+  },
+  {
+    "question": "What kind of group does Pinhead Gunpowder and Billie Joe Armstrong have in common?",
+    "ground_truth": "band",
+    "relevant_chunk_ids": [
+      "e42869db42146c9e-chunk-0",
+      "729ec29b398634f5-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Pinhead Gunpowder | Billie Joe Armstrong; type: bridge"
+  },
+  {
+    "question": "\"Clydebuilt\" is on the south bank of what river?",
+    "ground_truth": "the River Clyde",
+    "relevant_chunk_ids": [
+      "b1da8404a57555a3-chunk-1",
+      "e22e9719165b790a-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Scottish Maritime Museum | Braehead; type: bridge"
+  },
+  {
+    "question": "The Secret of Moonacre was directed by the founder of which animation studio?",
+    "ground_truth": "Klasky Csupo",
+    "relevant_chunk_ids": [
+      "ddee00a1f46dd5b6-chunk-0",
+      "c98b602a9035c17b-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: The Secret of Moonacre | Gábor Csupó; type: bridge"
+  },
+  {
+    "question": "How many girls and boys are in the seventeen sibling family featured on Counting On?",
+    "ground_truth": "nine girls and 10 boys",
+    "relevant_chunk_ids": [
+      "9ed5b1771bbeadb6-chunk-0",
+      "cafba8eab4cab820-chunk-0",
+      "a60a6137e8308f79-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Counting On | 19 Kids and Counting; type: bridge"
+  },
+  {
+    "question": "Does the drink Quick Fuck have more layers than the drink Ti' Punch?",
+    "ground_truth": "yes",
+    "relevant_chunk_ids": [
+      "aaf3eb065c58075b-chunk-0",
+      "1058d92dd723a32e-chunk-0",
+      "1058d92dd723a32e-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Ti' Punch | Quick Fuck; type: comparison"
+  },
+  {
+    "question": "How many rooms does the Tropicana Hotel have where the 7th annual Adult Video News awards ceremony were held in 1980?",
+    "ground_truth": "1,467 rooms",
+    "relevant_chunk_ids": [
+      "b50d7d6ee057f6ad-chunk-0",
+      "cbecb2f3a13c971f-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: 7th AVN Awards | Tropicana Las Vegas; type: bridge"
+  },
+  {
+    "question": "What are The Ready Set and Cell?",
+    "ground_truth": "band",
+    "relevant_chunk_ids": [
+      "66b67a246797b62c-chunk-0",
+      "67e08cd47d46f82b-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: The Ready Set | Cell (American band); type: comparison"
+  },
+  {
+    "question": "What railroad in which Challengers were most common was completed in 1915?",
+    "ground_truth": "Clinchfield Railroad",
+    "relevant_chunk_ids": [
+      "e869fe5c5baea765-chunk-1",
+      "a5cfdf1baa73594b-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: 4-6-6-4 | Clinchfield Railroad; type: bridge"
+  },
+  {
+    "question": "Which contributor to Fear: 13 Stories of Suspense and Horror was born on March 15, 1953 ?",
+    "ground_truth": "Heather Graham",
+    "relevant_chunk_ids": [
+      "9e485fbe0514d68f-chunk-0",
+      "9e485fbe0514d68f-chunk-1",
+      "3ce0216dc5210d44-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Fear (anthology) | Heather Graham Pozzessere; type: bridge"
+  },
+  {
+    "question": "Tritonia and Phyteuma are both names for a what of plants?",
+    "ground_truth": "genus",
+    "relevant_chunk_ids": [
+      "b40eddbe6b357ddc-chunk-0",
+      "655125ae1f14b6f5-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Tritonia (plant) | Phyteuma; type: comparison"
+  },
+  {
+    "question": "What classical music written by a Russian composer did Sia heavily sample?",
+    "ground_truth": "Montagues and Capulets",
+    "relevant_chunk_ids": [
+      "e0075f8ecda096d5-chunk-1",
+      "36355b1ff3875782-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Taken for Granted | Montagues and Capulets; type: bridge"
+  },
+  {
+    "question": "Are the mountains known as Trivor and The Crown both found in Asia?",
+    "ground_truth": "yes",
+    "relevant_chunk_ids": [
+      "a50ffcc6e3edb0de-chunk-0",
+      "7642fbfd69942e99-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Trivor | The Crown (mountain); type: comparison"
+  },
+  {
+    "question": "Who was the wife of the president when William Bainbridge started his career?",
+    "ground_truth": "Abigail",
+    "relevant_chunk_ids": [
+      "d240baff45969984-chunk-0",
+      "62a80191009ab9fa-chunk-1"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: William Bainbridge | John Adams; type: bridge"
+  },
+  {
+    "question": "Which town in New Hampshire with a population of 5,457 in 2010 is located by Mount Monadnock?",
+    "ground_truth": "Jaffrey",
+    "relevant_chunk_ids": [
+      "9b82d17a097f11c6-chunk-0",
+      "435d44969813de56-chunk-0"
+    ],
+    "expected_behavior": "answer",
+    "notes": "hotpotqa multi-hop; gold titles: Monadnock-Sunapee Greenway | Jaffrey, New Hampshire; type: bridge"
+  },
+  {
+    "question": "What did DECnet Phase I become?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "What kind of school is a Sonderungsverbot?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "What usually carries sediment particles from one place to another?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "Who threw Hagen into the river?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "In what century did the history of the steam digester begin?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "In what country was Damascus?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "How many people usually go to see Harvard sports teams play each year?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "What Governor wasn't in charge of New France died in 1752?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "When did BSkyB fail launching it's HDTV service?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "What letter didn't Washington present to Saint-Pierre ?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "The Stagg Presidential Center is set to be finished in what year?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "When was the first reference in history to Prussia?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "What is underrepresented in epitope regions?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "What is a variant of the simple expansion pivot mounting?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "What was the first textile device used commercially?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "How many seats does Australia have in the House of Representatives?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "If there is no dissent, the Presiding Officer says what?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "What was first battle in 1745?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "Whose experiments with oxygen led to the popular theory of combustion and corrosion?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  },
+  {
+    "question": "What does cytokine TGF-β encourage the activity of?",
+    "ground_truth": "The ingested documents do not contain information to answer this question.",
+    "relevant_chunk_ids": [],
+    "expected_behavior": "fallback",
+    "notes": "squad_v2 unanswerable; topic absent from corpus"
+  }
+]
