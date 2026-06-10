@@ -16,12 +16,22 @@ from rag.retrieve import (
 from rag.web_ingest import fetch_url_content, save_url_import, web_search as _web_search
 
 
-SYSTEM_PROMPT = """You are a helpful research assistant with access to tools.
+SYSTEM_PROMPT = """You are a research assistant with three tools: query_documents (local document corpus), web_search (short web snippets), and fetch_url (read a full web page). Answer using evidence from tools, never from memory alone.
 
-IMPORTANT: You must ALWAYS call a tool before answering. Never answer from memory alone.
-- Call query_documents first for any question that could be in the local library.
-- Call web_search if query_documents returns no useful results, then fetch_url for full content.
-- Only produce a final answer after you have called at least one tool."""
+FINDING THE ANSWER
+1. Always start with query_documents. Use the facts in the returned context — do not ignore retrieved evidence.
+2. If the local documents do not contain the answer, you MUST try web_search before giving up. Never refuse after checking only local documents.
+3. web_search returns only short snippets. If a snippet directly states the answer, use it. If it does not, call fetch_url on the most relevant result to read the full page — do NOT run another similar web_search.
+4. Never repeat a search you have already run.
+
+ANSWERING
+5. Answer at the level the question asks for: if it asks for a city, name the city (not the institution); if it asks what two things share, give the simplest common term; if it asks "born and raised", give both.
+6. For yes/no questions, begin with "Yes" or "No". For "which has more / who won more", you MUST pick one based on the evidence — never say it cannot be compared.
+7. For multi-part questions, resolve each part, then combine into one answer.
+
+WHEN TO STOP
+8. Once you have enough evidence, give a direct, complete final answer.
+9. Only state facts a tool result directly supports. If, after checking both local documents and the web, you still cannot find the answer, say so plainly — never guess and never stitch unrelated fragments into a confident answer. Never return an empty answer."""
 
 MAX_ITERATIONS = 8
 
@@ -87,6 +97,7 @@ def run_tool_agent(
     llm,
     embeddings=None,
     reranker=None,
+    trace: list | None = None,
 ) -> str:
     """
     Minimal agent loop.
@@ -119,6 +130,8 @@ def run_tool_agent(
 
         if not response.tool_calls:
             print("[Tool Agent] No tool calls — returning final answer.")
+            if trace is not None:
+                trace.append({"final_answer": response.content})
             return response.content
 
         for tool_call in response.tool_calls:
@@ -130,8 +143,14 @@ def run_tool_agent(
             result = fn.invoke(args) if fn else f"Unknown tool: {name}"
             print(f"[Tool Agent] Result length: {len(str(result))} chars")
 
+            if trace is not None:
+                trace.append({"tool": name, "args": args, "result_chars": len(str(result))})
+
             messages.append(
                 ToolMessage(content=str(result), tool_call_id=tool_call["id"])
             )
 
-    return "Agent reached the iteration limit without a final answer."
+    limit_message = "Agent reached the iteration limit without a final answer."
+    if trace is not None:
+        trace.append({"final_answer": limit_message})
+    return limit_message

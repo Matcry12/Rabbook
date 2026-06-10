@@ -7,7 +7,8 @@
 ![LangGraph](https://img.shields.io/badge/LangGraph-Agentic-orange)
 ![Tests](https://img.shields.io/badge/Tests-57%20passing-brightgreen)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)
-![RAGAS](https://img.shields.io/badge/Eval-RAGAS-purple)
+![Accuracy](https://img.shields.io/badge/Answer%20Accuracy-71%25-success)
+![Benchmark](https://img.shields.io/badge/Benchmark-100%20cases-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ---
@@ -23,6 +24,26 @@ Most RAG projects embed documents and call an LLM. Rabbook is built the way prod
 | **Self-expanding knowledge base** | When the agent fetches a web page, it auto-embeds it. Future queries over that content go through the full RAG pipeline — not raw text. |
 | **Multi-provider LLM support** | Groq (Llama), Google Gemini, and local Ollama models (including thinking-mode toggle). Swap providers with a single env var. |
 | **57 unit tests, zero LLM calls** | Full mock coverage across retrieval, agent loop, research graph, and structured output. |
+
+---
+
+## Results & Impact
+
+I treated this as a real engineering project: build it, **measure it on a hard public benchmark, find the bottlenecks, and prove the fix** — all on a **free local 4.6B model** (Ollama `gemma`) at **$0 inference cost**.
+
+**Benchmark:** 100 cases — 80 multi-hop **HotpotQA** (distractor setting) + 20 unanswerable **SQuAD v2** — scored by an LLM-as-judge **calibrated to 95% agreement with human labels** before use.
+
+| Metric | Before | After | Lever |
+|--------|:------:|:-----:|-------|
+| **Answer accuracy** (multi-hop QA) | 64% | **71%** | Evidence-based prompt rework |
+| **Hallucination** (unanswerable Qs) | ~20% | **~10%** | Grounding-discipline prompt rules |
+| **Retrieval — both gold chunks found** | 54% | **89%** | Widened hybrid candidate pool |
+| **Retrieval — Hit@k** | 0.99 | **1.00** | (same) |
+| **Tool escalation** (snippet → full page) | 2 / 100 | **8 / 100** | Resolved "escalate vs. refuse" prompt conflict |
+
+Each gain was **diagnosed before it was fixed** — e.g. the retrieval jump came from proving the second multi-hop chunk was missing from the candidate *pool* (not just mis-ranked), then widening it. Full methodology, per-case verdicts, and an **honest regression analysis** live in the white paper: **[`docs/EVALUATION.md`](docs/EVALUATION.md)**.
+
+> **Why this matters:** diagnosing *why* a RAG system fails and proving the improvement with numbers is the skill that separates real AI engineering from a "ChatGPT wrapper."
 
 ---
 
@@ -192,30 +213,32 @@ All tests use mocks — no API keys, no network, no vectorstore required.
 
 ## Evaluation
 
-Two evaluation scripts measure different layers of quality:
+Rabbook ships with a **three-layer evaluation suite** — because retrieval can look perfect while generation fabricates, and generation can look fine while agent routing is broken. Each layer isolates one failure mode:
 
-**Custom pipeline evaluation** (`evaluate_retrieval.py`) — fast, no extra LLM calls:
-- Answer correctness against expected concepts
-- Grounded vs. hallucinated answer rate
-- Safe fallback behavior when evidence is insufficient
+| Layer | Measures | Judge |
+|-------|----------|-------|
+| **Retrieval** | Does the retriever fetch the gold chunks? (Hit@k, Recall@k, MRR) | Deterministic IR metrics |
+| **Answer quality** | Is the final answer correct / non-fabricated? | LLM-as-judge (95% human-calibrated) |
+| **Agent behaviour** | Does it route locally first and refuse unanswerable questions? | Heuristic |
 
-**RAGAS evaluation** (`evaluate_ragas.py`) — industry-standard RAG metrics:
-- **Faithfulness**: is the answer faithful to the retrieved context? (detects hallucination)
-- **Answer Relevancy**: does the answer actually address the question?
+**Benchmark:** 100 cases from two public datasets — **80 multi-hop HotpotQA** (distractor setting: 2 gold + 8 distractor paragraphs per question) and **20 unanswerable SQuAD v2** questions (to test refusal vs. hallucination).
+
+| Layer | Headline (tuned, gemma4:e2b) |
+|-------|------------------------------|
+| Retrieval | Hit@k **1.00** · Recall@k **0.83** · MRR **0.95** |
+| Answer quality | **57 / 80 ≈ 71%** correct on multi-hop QA |
+| Hallucination | No-fabrication rate **90%** · ~10% fabricated on unanswerable Qs |
 
 ```bash
-python evaluate_retrieval.py   # custom keyword-match evaluation
-python evaluate_ragas.py       # RAGAS faithfulness + answer relevancy
+# Layer 1 — retrieval IR metrics (fast, no API cost)
+python -m evaluation.evaluate_retrieval_metrics
+# Layer 3 — agent behaviour checks
+python -m evaluation.evaluate_agent
 ```
 
-**Scores** (RAG: Ollama `gemma4:e2b` · Evaluator: Gemini `gemini-3.1-flash-lite` · 20 questions):
+📄 **Full write-up:** [`docs/EVALUATION.md`](docs/EVALUATION.md) — a white paper covering the methodology, the recall diagnostic, the prompt-failure taxonomy, the before/after results, a per-case verdict table, and limitations.
 
-| Metric | Score | Meaning |
-|--------|-------|---------|
-| Faithfulness | **1.000** | every answer claim is grounded in retrieved context |
-| Answer Relevancy | **0.956** | answers directly address the question |
-
-Adding `"ground_truth"` to `tests/eval_question.json` unlocks Context Precision and Context Recall metrics.
+> RAGAS metrics (Faithfulness, Answer Relevancy) are also wired in via `evaluation/evaluate_ragas.py` as an industry-standard cross-check.
 
 ---
 
