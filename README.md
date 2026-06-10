@@ -150,7 +150,20 @@ app/
   runtime.py          — lazy-load & cache: vectorstore, BM25, registry
 core/
   config.py           — all env vars with defaults
+evaluation/           — the 3-layer evaluation suite (see "Evaluation" below)
+  evaluate_retrieval_metrics.py  — Layer 1: Hit@k / Recall@k / MRR
+  evaluate_agent.py              — Layer 3: routing & refusal checks
+  evaluate_ragas.py             — RAGAS faithfulness / answer relevancy
+  time_agent.py                 — full agent run harness (timing, tools, answers)
+  build_eval_corpus.py          — builds the 100-case HotpotQA + SQuAD v2 benchmark
+  data/                         — golden dataset + per-case results & verdicts
+docs/
+  EVALUATION.md       — evaluation white paper (methodology, results, analysis)
 ```
+
+> 📊 **Evaluation lives in [`evaluation/`](evaluation/) with a full write-up in
+> [`docs/EVALUATION.md`](docs/EVALUATION.md).** See the [Results & Impact](#results--impact)
+> and [Evaluation](#evaluation) sections.
 
 ---
 
