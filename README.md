@@ -1,3 +1,13 @@
+---
+title: Rabbook Agentic RAG
+emoji: 📚
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 6001
+pinned: false
+---
+
 # Rabbook — Agentic RAG System
 
 > A production-quality Retrieval-Augmented Generation application built from scratch, featuring a real tool-use agent loop, hybrid retrieval, and a self-expanding knowledge base.
